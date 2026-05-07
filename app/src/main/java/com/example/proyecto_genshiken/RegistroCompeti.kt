@@ -22,7 +22,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.contentColorFor
-import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.remote.creation.random
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue

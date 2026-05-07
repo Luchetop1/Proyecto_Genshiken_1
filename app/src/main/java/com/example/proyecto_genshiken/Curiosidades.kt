@@ -50,7 +50,7 @@ object Curiosidades {
         "¿Sabías que en términos de reproducción entre humanos y Pokemon, Vaporeon... \n Mostrar más",
         "¿Sabías que no es recomendable apagar incendios como lo hacen en Fire Force?",
         "¿Sabías que esta será una historia romántica como nunca antes se había contado?",
-        "¿Sabías que Momo Yoyorozu puede acabar con la economía global?",
+        "¿Sabías que Momo Yoyorouzu puede acabar con la economía global?",
         "¿Sabías que Kaede Akamatsu no es matemática ni física? ahí lo dejo...",
         "¿Sabías que el famoso meme de Kyoko Kirigiri siendo ejecutada es la unica ejecución no canon de Danganronpa?",
         "¿Sabías que no deberías intentar asesinar a tu profesor? a menos que sea un alien...",
@@ -59,7 +59,7 @@ object Curiosidades {
         "¿Sabías que las espadas en la vida real no son tan extravagantes como lo hacen en los Animes?",
         "¿Sabías que el Hara-Kiri era el 67 de la época en Japón?",
         "¿Sabías que lootear a un viejo muerto te dá los poderes de la Armonía?",
-        "¿Sabías que en Wuthering Waves, el protagonista no suele volver a hablar con ningun personaje de la historia?",
+        "¿Sabías que en Wuthering Waves, el protagonista no suele volver a hablar con ningun personaje de la historia tras haber acabado la msisión principal de turno?",
         "¿Sabías que en Persona 5, casi todas tus decisiones las tiene que aprobar un gato?",
         "¿Sabías que Sung Jin-Woo y Dwayne Johnson tienen el mismo contrato?",
         "¿Sabías que Brad Pitt será la voz de Klee en el Anime de Genshin Impact?",
@@ -69,7 +69,13 @@ object Curiosidades {
         "¿Sabías que cualquier lugar se ve más bonito si decimos que está en Japón?",
         "¿Sabías que en Inazuma Eleven 2 hay un texto en el que no recomiendan imitar las supertécnicas? y yo que ya tenía los pinguinos...",
         "¿Sabías que nunca voy a abandonarte, nunca te decepcionaré, nunca andaré de vago ni te abandonaré?",
-        "¿Sabías que existe un Anime de la Biblia? el episodio donde Jesus muere tuvo malas críticas y el autor decidió revivirlo",
+        "¿Sabías que existe un Anime de la Biblia? Parece ser que el episodio donde Jesus muere tuvo malas críticas y el autor decidió revivirlo? Que conveniencia del guión",
+        "¿Sabías que existe un concepto universal en internet donde aparece FranYaoi en cualquier lado?",
+        "¿Sabías que el otro día vi Boku No Pico? Buah, pedazo de serie, me gusta el rubio, pero aun no entiendo donde esta la temática de superhéroes ¿Y quíen es Deku? ¿Será que aparece en la siguiente temporada?",
+        "¿Sabes que juego hizo Willyrex? ¡RESPONDE A LA PREGUNTA! ¡¿QUÉ JUEGO HIZO WILLYREX!?",
+        "¿Sabías que hay personas a las que les hace gracia el numero 7? Y también el color azul, y los zapatos, y que las chicas solo valgan 1. De las dos personas que hayan difundido eso, uno debe de tener unos testículos muy débiles y llamarse Marcos, el otro debe de ser un mitómano ladrón de pozos. Que específico ¿Verdad? ",
+        "¿Sabías que El Castillo Infinito de Kimetsu No Yaiba no era tan infinito? Ahora que lo pienso el tren tampoco era tan infinito"
+
 
 
 

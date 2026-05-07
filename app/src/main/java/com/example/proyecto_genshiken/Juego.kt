@@ -1,5 +1,7 @@
 package com.example.proyecto_genshiken
 
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -48,10 +50,10 @@ import kotlinx.coroutines.delay
 import kotlin.collections.forEachIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun Juego(navController: NavHostController){
-
 
     var nivel by remember { mutableStateOf(1) }
     var numeroPregunta by remember { mutableStateOf(0) }
@@ -75,6 +77,10 @@ fun Juego(navController: NavHostController){
         2 -> PreguntasJuego.level2
         else -> PreguntasJuego.level1
     }
+
+    val context = LocalContext.current
+
+    // esta es la funcion de tiempo que no deja de subir, el tiempo total sera aquel que veran los jugadores, el tiempo por nivel es aquel que se contara para el bonus despues de cada nivel
     LaunchedEffect(Unit){
         while(true){
             delay(1000)
@@ -83,14 +89,25 @@ fun Juego(navController: NavHostController){
         }
     }
 
-    val pregunta = preguntas[numeroPregunta]
+    // al crear una animacion entre preguntas ya no es necesario poner un boton de siguiente nivel! cuando respondas la accion se ejecutara y pasara a la siguiente pregunta
+    LaunchedEffect(repuestaElegida) {
+        if (repuestaElegida != null) {
+            delay(800)
+            if  (numeroPregunta < preguntas.size - 1) {
+                numeroPregunta++
+                repuestaElegida = null
+                colorFondo = Color.Transparent
+                estadoRespuesta[numeroPregunta] = EstadoRespuesta.CURRENT
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp).
-            verticalScroll(rememberScrollState()).
-            padding(bottom = 24.dp),
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+            .padding(bottom = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
 
@@ -98,56 +115,69 @@ fun Juego(navController: NavHostController){
         Header(nivel,tiempoTotal,puntuacion)
         Spacer(Modifier.height(40.dp))
 
-        Image(
-            painter = painterResource(pregunta.imagen),
-            contentDescription = null,
-            modifier = Modifier.size(200.dp)
-        )
+        // Aqui es donde creo la animacion anteriormente dicha
+        AnimatedContent(
+            targetState = numeroPregunta,
+            transitionSpec = {
+                slideInHorizontally(
+                    animationSpec = tween(200),
+                    initialOffsetX = { it }
+                ) + fadeIn() togetherWith
+                        slideOutHorizontally(
+                            animationSpec = tween(200),
+                            targetOffsetX = { -it }
+                        ) + fadeOut()
+            },
+            label = "AnimacionPregunta"
+        ) { index ->
 
-        Spacer(Modifier.height(80.dp))
+            val pregunta = preguntas[index]
 
-        Box(
-            modifier = Modifier
-                .background(colorFondo)
-                .padding(8.dp)
-        ){
-            Text(
-                pregunta.preguntas,
-                fontSize = 20.sp
-            )
-        }
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
 
-        Spacer(Modifier.height(40.dp))
+                Image(
+                    painter = painterResource(pregunta.imagen),
+                    contentDescription = null,
+                    modifier = Modifier.size(200.dp)
+                )
 
-        Opciones (
-            opciones = pregunta.opciones,
-            respuestaElegida = repuestaElegida,
-            onClick = { index ->
+                Spacer(Modifier.height(40.dp))
 
-                if(repuestaElegida==null){
-
-                    repuestaElegida = index
-
-                    if (index == pregunta.opcionCorrecta) {
-
-                        puntuacion += 1000
-                        respuestaCorrecta++
-                        estadoRespuesta[numeroPregunta] = EstadoRespuesta.CORRECT
-
-
-
-                    } else {
-
-                        puntuacion -= 200
-                        estadoRespuesta[numeroPregunta] = EstadoRespuesta.WRONG
-
-
-
-                    }
-
+                Box(
+                    modifier = Modifier
+                        .background(colorFondo)
+                        .padding(8.dp)
+                ){
+                    Text(
+                        text = pregunta.preguntas,
+                        fontSize = 20.sp
+                    )
                 }
+
+                Spacer(Modifier.height(40.dp))
+
+                Opciones(
+                    opciones = pregunta.opciones,
+                    respuestaElegida = repuestaElegida,
+                    onClick = { indexRespuesta ->
+
+                        if (repuestaElegida == null) {
+
+                            repuestaElegida = indexRespuesta
+
+                            if (indexRespuesta == pregunta.opcionCorrecta) {
+                                puntuacion += 1000
+                                respuestaCorrecta++
+                                estadoRespuesta[numeroPregunta] = EstadoRespuesta.CORRECT
+                            } else {
+                                puntuacion -= 200
+                                estadoRespuesta[numeroPregunta] = EstadoRespuesta.WRONG
+                            }
+                        }
+                    }
+                )
             }
-        )
+        }
 
         Spacer(Modifier.height(40.dp))
 
@@ -155,7 +185,7 @@ fun Juego(navController: NavHostController){
 
         Spacer(Modifier.height(40.dp))
 
-        if(numeroPregunta == 9){
+        if (numeroPregunta >= preguntas.size - 1){
 
             Button(onClick = {
 
@@ -165,8 +195,14 @@ fun Juego(navController: NavHostController){
                 UserRepository.saveScore(UserSession.userId, puntuacion)
 
 
+
+                val monedasGanadas = puntuacion / 100
+                GachaState.monedas.value += monedasGanadas
+                GachaState.guardar(context)
+
                 if (respuestaCorrecta >= 5) {
                     tiempoNivel = 0
+
                     if (nivel < 5) {
                         nivel++
                         numeroPregunta = 0
@@ -174,10 +210,17 @@ fun Juego(navController: NavHostController){
                         repuestaElegida = null
                         colorFondo = Color.Transparent
 
-                        tiempoNivel = 0
+                        estadoRespuesta.clear()
+                        val nuevasPreguntas = when (nivel) {
+                            1 -> PreguntasJuego.level1
+                            2 -> PreguntasJuego.level2
+                            else -> PreguntasJuego.level1
+                        }
 
                         estadoRespuesta.clear()
-                        repeat(10) { estadoRespuesta.add(EstadoRespuesta.PENDING) }
+                        repeat(nuevasPreguntas.size) {
+                            estadoRespuesta.add(EstadoRespuesta.PENDING)
+                        }
 
                     } else {
                         navController.navigate("Ranking")
@@ -188,25 +231,7 @@ fun Juego(navController: NavHostController){
                 }
 
             }){
-
                 Text("Finalizar nivel")
-            }
-
-        }else{
-
-            Button(onClick = {
-
-                if(repuestaElegida!=null){
-
-                    numeroPregunta++
-                    repuestaElegida = null
-                    colorFondo = Color.Transparent
-                    estadoRespuesta[numeroPregunta] = EstadoRespuesta.CURRENT
-                }
-
-            }){
-
-                Text("Siguiente")
             }
         }
     }
@@ -214,16 +239,12 @@ fun Juego(navController: NavHostController){
 
 @Composable
 fun Header(nivel:Int,tiempo:Int,puntuacion:Int){
-
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ){
-
         Text("Nivel $nivel")
-
         Text("Tiempo $tiempo")
-
         Column {
             Text("Puntuación")
             Text("$puntuacion")
@@ -238,9 +259,7 @@ fun Opciones(
     onClick: (Int) -> Unit
 ) {
 
-    Column(
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -269,11 +288,8 @@ fun Boton(
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier
-            .height(60.dp),
-        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
-            containerColor = color
-        )
+        modifier = modifier.height(60.dp),
+        colors = ButtonDefaults.buttonColors(containerColor = color)
     ) {
         Text(
             text = text,
@@ -283,18 +299,16 @@ fun Boton(
         )
     }
 }
+
 @Composable
 fun QuestionProgress(
     states:List<EstadoRespuesta>,
     currentIndex:Int
 ){
-
     Row {
-
         states.forEachIndexed { index, state ->
 
             val color = when(state){
-
                 EstadoRespuesta.CORRECT -> Color.Green
                 EstadoRespuesta.WRONG -> Color.Red
                 EstadoRespuesta.CURRENT -> Color(0xFFFFA500)
@@ -308,7 +322,6 @@ fun QuestionProgress(
                     .border(1.dp,Color.Black),
                 contentAlignment = Alignment.Center
             ){
-
                 Text("${index+1}")
             }
 

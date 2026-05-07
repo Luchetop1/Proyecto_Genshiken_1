@@ -19,6 +19,8 @@ foundation = "1.10.4"
 benchmarkTraceprocessor = "1.4.1"
 foundationLayout = "1.10.4"
 remoteCreationCore = "1.0.0-alpha06"
+material3Common = "1.0.0-alpha01"
+uiGraphicsVersion = "1.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -46,6 +48,8 @@ androidx-compose-foundation = { group = "androidx.compose.foundation", name = "f
 androidx-benchmark-traceprocessor = { group = "androidx.benchmark", name = "benchmark-traceprocessor", version.ref = "benchmarkTraceprocessor" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout", version.ref = "foundationLayout" }
 androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
+androidx-compose-material3-common = { group = "androidx.compose.material3", name = "material3-common", version.ref = "material3Common" }
+ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphicsVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

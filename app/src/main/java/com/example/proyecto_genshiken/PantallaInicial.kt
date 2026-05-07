@@ -1,207 +1,201 @@
 package com.example.proyecto_genshiken
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import com.example.proyecto_genshiken.ui.theme.Proyecto_GenshikenTheme
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.Icon
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.material3.*
+import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
 
 
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaInicio(navController: NavController) {
 
-    val curiosidad = remember {
-        Curiosidades.lista.random()
-    }
-    val context = LocalContext.current
-
+    val curiosidad = remember { Curiosidades.lista.random() }
     var expandir by remember { mutableStateOf(false) }
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-    ) {
+    Scaffold(
 
-        Column(
-        ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            // esta es la configuracion del sistema
-            Text(
-                text = "⚙️",
-                fontSize = 24.sp,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier
-                    .padding(16.dp)
-                    .clickable { expandir = true }
-                    .align(Alignment.End)
-            )
+        // En este header aparecerá el nombre del juego y la configuracion para que se vea siempre d:
+        topBar = {
+            Spacer(modifier = Modifier.height(16.dp))
+            TopAppBar(
+                title = {
+                    Text("Genshiken")
+                },
+                actions = {
 
-            DropdownMenu(
-                expanded = expandir,
-                onDismissRequest = { expandir = false }
-            ) {
-
-                DropdownMenuItem(
-                    text = {
-                        Text("Modo oscuro", color = MaterialTheme.colorScheme.onSurface)
-                    },
-                    onClick = {
-                        expandir = false
-                        val newValue = !ThemeState.isDarkMode.value
-                        ThemeState.isDarkMode.value = newValue
-                        ThemePreferences.saveDarkMode(context, newValue)
+                    IconButton(onClick = { expandir = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = "Configuración"
+                        )
                     }
-                )
 
-                DropdownMenuItem(
-                    text = {
-                        Text("Cambiar nombre", color = MaterialTheme.colorScheme.onSurface)
-                    },
-                    onClick = {
-                        expandir = false
-                        navController.navigate("cambiarNombre")
-                    }
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
-            ) {
-
-                Spacer(modifier = Modifier.height(5.dp))
-
-                Text(
-                    text = "Bienvenido a la aplicación",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                Text(
-                    text = "Seleccione el modo al que desea jugar",
-                    fontSize = 16.sp,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Image(
-                    painter = painterResource(id = R.drawable.espadacasual),
-                    contentDescription = "Casual",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .clickable {
-                            navController.navigate("inicioSesionCasual")
-                        },
-                    contentScale = ContentScale.Fit
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Image(
-                    painter = painterResource(id = R.drawable.espadacasual),
-                    contentDescription = "Competitivo",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                        .clickable {
-                            if (UserSession.userId == 0) {
-                                navController.navigate("inicioSesionCompeti")
-                            } else {
-                                navController.navigate("Juego")
-                            }
-                        },
-                    contentScale = ContentScale.Fit
-                )
-
-                Spacer(modifier = Modifier.height(20.dp))
-
-                Image(
-                    painter = painterResource(id = R.drawable.corona),
-                    contentDescription = "Ranking",
-                    modifier = Modifier
-                        .size(180.dp)
-                        .clickable {
-                            navController.navigate("Ranking")
-                        },
-                    contentScale = ContentScale.Fit
-                )
-
-                Spacer(modifier = Modifier.height(30.dp))
-
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface // 👈 ADAPTADO
-                    )
-                ) {
-
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    DropdownMenu(
+                        expanded = expandir,
+                        onDismissRequest = { expandir = false }
                     ) {
 
-                        Text(
-                            text = "¿Sabías que?",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 24.sp,
-                            color = MaterialTheme.colorScheme.onSurface
+                        DropdownMenuItem(
+                            text = { Text("Modo oscuro") },
+                            onClick = {
+                                expandir = false
+                                ThemeState.isDarkMode.value =
+                                    !ThemeState.isDarkMode.value
+                            }
                         )
 
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = curiosidad,
-                            fontSize = 18.sp,
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurface
+                        DropdownMenuItem(
+                            text = { Text("Cambiar nombre") },
+                            onClick = {
+                                expandir = false
+                                navController.navigate("cambiarNombre")
+                            }
                         )
                     }
                 }
+            )
+        }
+
+    ) { paddingValues ->
+
+        // Este es el siguiente contenido, este se puede Scrollear hacia arriba o abajo
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues) // muy importante el Scroll
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+
+            Text(
+                text = "Bienvenido a la aplicación",
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Seleccione el modo al que desea jugar",
+                fontSize = 16.sp
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.espadacasual),
+                contentDescription = "Casual",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clickable {
+                        navController.navigate("inicioSesionCasual")
+                    }
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.espadacasual),
+                contentDescription = "Competitivo",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp)
+                    .clickable {
+                        if (UserSession.userId == 0) {
+                            navController.navigate("inicioSesionCompeti")
+                        } else {
+                            navController.navigate("Juego")
+                        }
+                    }
+            )
+
+            Spacer(modifier = Modifier.height(60.dp))
+
+            Image(
+                painter = painterResource(id = R.drawable.corona),
+                contentDescription = "Ranking",
+                modifier = Modifier
+                    .size(180.dp)
+                    .clickable {
+                        navController.navigate("Ranking")
+                    }
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    Text(
+                        text = "¿Sabías que?",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 24.sp
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = curiosidad,
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Button(onClick = {
+                navController.navigate("gacha")
+            }) {
+                Text("Gacha")
+            }
+
+            Button(onClick = {
+                navController.navigate("coleccion")
+            }) {
+                Text("Colección")
             }
         }
     }

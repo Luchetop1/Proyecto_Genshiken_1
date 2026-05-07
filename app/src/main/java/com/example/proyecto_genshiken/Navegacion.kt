@@ -39,5 +39,12 @@ fun Navegacion(navController: NavHostController){
         composable("cambiarNombre") {
             CambiarNombre(navController)
         }
+        composable("gacha") {
+            PantallaGacha(navController)
+        }
+
+        composable("coleccion") {
+            PantallaColeccion(navController)
+        }
     }
 }

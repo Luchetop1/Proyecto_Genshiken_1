@@ -1,6 +1,5 @@
 package com.example.proyecto_genshiken
 
-import android.content.Context
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,19 +9,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.platform.LocalContext
+
 import androidx.compose.ui.graphics.Color
 import androidx.navigation.NavController
 
 @Composable
 fun PantallaColeccion(navController: NavController) {
 
-    val context = LocalContext.current
 
-    // con esto Cargaremos los datos guardados de la aplicacion
-    LaunchedEffect(Unit) {
-        GachaState.cargar(context)
-    }
 
     LazyColumn(
         modifier = Modifier

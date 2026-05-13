@@ -44,9 +44,7 @@ import kotlin.math.sin
 @Composable
 fun RegistroCompeti(navController: NavHostController){
 
-    val curiosidad = remember {
-        Curiosidades.lista.random()
-    }
+
     var usuario by remember {
         mutableStateOf("")
     }
@@ -161,8 +159,10 @@ fun RegistroCompeti(navController: NavHostController){
                            when (it) {
                                "EXISTE" -> mensajeError = "El correo ya está registrado"
                                "OK" -> {
-                                   mensajeError = "Registro correcto"
-                                   navController.navigate("inicio")
+                                   mensajeError =
+                                       "Te hemos enviado un correo de verificación"
+
+                                   navController.navigate("inicioSesionCompeti")
                                }
                                else -> mensajeError = "Error en registro"
                            }
@@ -199,26 +199,7 @@ fun RegistroCompeti(navController: NavHostController){
                     modifier = Modifier.fillMaxWidth()
                 ) {
 
-                    Column(
 
-                        modifier = Modifier.padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-
-                        Text(
-                            text = "¿Sabías que?",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 32.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = curiosidad,
-                            fontSize = 18.sp,
-                            textAlign = TextAlign.Center
-                        )
-                    }
                 }
 
 

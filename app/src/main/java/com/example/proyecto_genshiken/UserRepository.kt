@@ -126,4 +126,142 @@ object UserRepository {
                 }
             })
     }
+    fun guardarMonedas(
+        usuarioId: Int,
+        monedas: Int
+    ) {
+
+        RetrofitClient.api.guardarMonedas(usuarioId, monedas)
+            .enqueue(object : Callback<String> {
+
+                override fun onResponse(
+                    call: Call<String>,
+                    response: Response<String>
+                ) {}
+
+                override fun onFailure(
+                    call: Call<String>,
+                    t: Throwable
+                ) {}
+            })
+    }
+
+    fun obtenerMonedas(
+        usuarioId: Int,
+        onResult: (Int) -> Unit
+    ) {
+
+        RetrofitClient.api.obtenerMonedas(usuarioId)
+            .enqueue(object : Callback<String> {
+
+                override fun onResponse(
+                    call: Call<String>,
+                    response: Response<String>
+                ) {
+
+                    val monedas =
+                        response.body()?.toIntOrNull() ?: 0
+
+                    onResult(monedas)
+                }
+
+                override fun onFailure(
+                    call: Call<String>,
+                    t: Throwable
+                ) {
+                    onResult(0)
+                }
+            })
+    }
+
+    fun guardarEspada(
+        usuarioId: Int,
+        espadaId: Int
+    ) {
+
+        RetrofitClient.api.guardarEspada(usuarioId, espadaId)
+            .enqueue(object : Callback<String> {
+
+                override fun onResponse(
+                    call: Call<String>,
+                    response: Response<String>
+                ) {}
+
+                override fun onFailure(
+                    call: Call<String>,
+                    t: Throwable
+                ) {}
+            })
+    }
+
+    fun obtenerEspadas(
+        usuarioId: Int,
+        onResult: (List<Int>) -> Unit
+    ) {
+
+        RetrofitClient.api.obtenerEspadas(usuarioId)
+            .enqueue(object : Callback<List<Int>> {
+
+                override fun onResponse(
+                    call: Call<List<Int>>,
+                    response: Response<List<Int>>
+                ) {
+
+                    onResult(response.body() ?: emptyList())
+                }
+
+                override fun onFailure(
+                    call: Call<List<Int>>,
+                    t: Throwable
+                ) {
+
+                    onResult(emptyList())
+                }
+            })
+    }
+    fun reenviarVerificacion(
+        correo: String,
+        onResult: (String) -> Unit
+    ) {
+
+        RetrofitClient.api.reenviarVerificacion(correo)
+            .enqueue(object : Callback<String> {
+
+                override fun onResponse(
+                    call: Call<String>,
+                    response: Response<String>
+                ) {
+                    onResult(response.body() ?: "ERROR")
+                }
+
+                override fun onFailure(call: Call<String>, t: Throwable) {
+                    onResult("ERROR")
+                }
+            })
+    }
+    fun obtenerPreguntas(
+        nivelId:Int,
+        onResult:(List<Preguntas>) -> Unit
+    ){
+
+        RetrofitClient.api.obtenerPreguntas(nivelId)
+            .enqueue(object : Callback<List<Preguntas>>{
+
+                override fun onResponse(
+                    call: Call<List<Preguntas>>,
+                    response: Response<List<Preguntas>>
+                ) {
+
+                    onResult(response.body() ?: emptyList())
+                }
+
+                override fun onFailure(
+                    call: Call<List<Preguntas>>,
+                    t: Throwable
+                ) {
+
+                    onResult(emptyList())
+                }
+            })
+    }
 }

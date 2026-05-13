@@ -1,12 +1,14 @@
 package com.example.proyecto_genshiken
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.Image
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,15 +20,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,69 +35,146 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
-import com.android.volley.Header
+import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
-import kotlin.collections.forEachIndexed
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.ui.platform.LocalContext
 
 @Composable
-fun Juego(navController: NavHostController){
+fun Juego(navController: NavHostController) {
 
     var nivel by remember { mutableStateOf(1) }
     var numeroPregunta by remember { mutableStateOf(0) }
     var puntuacion by remember { mutableStateOf(0) }
     var respuestaCorrecta by remember { mutableStateOf(0) }
 
-    var repuestaElegida by remember { mutableStateOf<Int?>(null) }
-    var colorFondo by remember { mutableStateOf(Color.Transparent) }
+    var respuestaElegida by remember {
+        mutableStateOf<Int?>(null)
+    }
+
+    var colorFondo by remember {
+        mutableStateOf(Color.Transparent)
+    }
 
     val estadoRespuesta = remember {
-        mutableStateListOf<EstadoRespuesta>().apply {
-            repeat(10){ add(EstadoRespuesta.PENDING) }
+        mutableStateListOf<EstadoRespuesta>()
+    }
+
+    var tiempoTotal by remember {
+        mutableStateOf(0)
+    }
+
+    var tiempoNivel by remember {
+        mutableStateOf(0)
+    }
+
+    var preguntas by remember {
+        mutableStateOf<List<Preguntas>>(emptyList())
+    }
+
+    var cargando by remember {
+        mutableStateOf(true)
+    }
+
+    // CARGAR PREGUNTAS DESDE MYSQL
+    LaunchedEffect(nivel) {
+
+        cargando = true
+
+        UserRepository.obtenerPreguntas(nivel) {
+
+            preguntas = it
+            cargando = false
+
+            numeroPregunta = 0
+
+            estadoRespuesta.clear()
+
+            repeat(it.size) {
+                estadoRespuesta.add(EstadoRespuesta.PENDING)
+            }
         }
     }
 
-    var tiempoTotal by remember { mutableStateOf(0) }
-    var tiempoNivel by remember { mutableStateOf(0) }
+    // EL TEMPORIZADOR
+    LaunchedEffect(Unit) {
 
-    val preguntas = when (nivel) {
-        1 -> PreguntasJuego.level1
-        2 -> PreguntasJuego.level2
-        else -> PreguntasJuego.level1
-    }
+        while (true) {
 
-    val context = LocalContext.current
-
-    // esta es la funcion de tiempo que no deja de subir, el tiempo total sera aquel que veran los jugadores, el tiempo por nivel es aquel que se contara para el bonus despues de cada nivel
-    LaunchedEffect(Unit){
-        while(true){
             delay(1000)
+
             tiempoTotal++
             tiempoNivel++
         }
     }
 
-    // al crear una animacion entre preguntas ya no es necesario poner un boton de siguiente nivel! cuando respondas la accion se ejecutara y pasara a la siguiente pregunta
-    LaunchedEffect(repuestaElegida) {
-        if (repuestaElegida != null) {
+    // CAMBIO AUTOMATICO ENTRE PREGUNTAS
+    LaunchedEffect(respuestaElegida) {
+
+        if (respuestaElegida != null) {
+
             delay(800)
-            if  (numeroPregunta < preguntas.size - 1) {
+
+            if (numeroPregunta < preguntas.size - 1) {
+
                 numeroPregunta++
-                repuestaElegida = null
+
+                respuestaElegida = null
+
                 colorFondo = Color.Transparent
-                estadoRespuesta[numeroPregunta] = EstadoRespuesta.CURRENT
+
+                estadoRespuesta[numeroPregunta] =
+                    EstadoRespuesta.CURRENT
             }
         }
+    }
+
+    // PANTALLA DE CARGA
+    if (cargando) {
+
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+
+            Text("Cargando preguntas...")
+        }
+
+        return
+    }
+
+    // SI NO HAY PREGUNTAS EN EL NIVEL
+    if (preguntas.isEmpty()) {
+
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Text(
+                    text = "No hay preguntas disponibles",
+                    fontSize = 22.sp
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Button(
+                    onClick = {
+                        navController.navigate("Ranking")
+                    }
+                ) {
+                    Text("Volver")
+                }
+            }
+        }
+
+        return
     }
 
     Column(
@@ -112,20 +187,29 @@ fun Juego(navController: NavHostController){
     ) {
 
         Spacer(Modifier.height(40.dp))
-        Header(nivel,tiempoTotal,puntuacion)
+
+        Header(
+            nivel,
+            tiempoTotal,
+            puntuacion
+        )
+
         Spacer(Modifier.height(40.dp))
 
-        // Aqui es donde creo la animacion anteriormente dicha
         AnimatedContent(
             targetState = numeroPregunta,
             transitionSpec = {
+
                 slideInHorizontally(
                     animationSpec = tween(200),
                     initialOffsetX = { it }
+
                 ) + fadeIn() togetherWith
+
                         slideOutHorizontally(
                             animationSpec = tween(200),
                             targetOffsetX = { -it }
+
                         ) + fadeOut()
             },
             label = "AnimacionPregunta"
@@ -133,12 +217,15 @@ fun Juego(navController: NavHostController){
 
             val pregunta = preguntas[index]
 
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
 
-                Image(
-                    painter = painterResource(pregunta.imagen),
+                // IMAGEN DE LA PREGUNTA
+                AsyncImage(
+                    model = pregunta.imagenPregunta,
                     contentDescription = null,
-                    modifier = Modifier.size(200.dp)
+                    modifier = Modifier.size(220.dp)
                 )
 
                 Spacer(Modifier.height(40.dp))
@@ -147,9 +234,10 @@ fun Juego(navController: NavHostController){
                     modifier = Modifier
                         .background(colorFondo)
                         .padding(8.dp)
-                ){
+                ) {
+
                     Text(
-                        text = pregunta.preguntas,
+                        text = pregunta.pregunta,
                         fontSize = 20.sp
                     )
                 }
@@ -158,20 +246,32 @@ fun Juego(navController: NavHostController){
 
                 Opciones(
                     opciones = pregunta.opciones,
-                    respuestaElegida = repuestaElegida,
+                    respuestaElegida = respuestaElegida,
                     onClick = { indexRespuesta ->
 
-                        if (repuestaElegida == null) {
+                        if (respuestaElegida == null) {
 
-                            repuestaElegida = indexRespuesta
+                            respuestaElegida =
+                                indexRespuesta
 
-                            if (indexRespuesta == pregunta.opcionCorrecta) {
+                            if (
+                                indexRespuesta ==
+                                pregunta.opcionCorrecta
+                            ) {
+
                                 puntuacion += 1000
+
                                 respuestaCorrecta++
-                                estadoRespuesta[numeroPregunta] = EstadoRespuesta.CORRECT
+
+                                estadoRespuesta[numeroPregunta] =
+                                    EstadoRespuesta.CORRECT
+
                             } else {
+
                                 puntuacion -= 200
-                                estadoRespuesta[numeroPregunta] = EstadoRespuesta.WRONG
+
+                                estadoRespuesta[numeroPregunta] =
+                                    EstadoRespuesta.WRONG
                             }
                         }
                     }
@@ -181,56 +281,69 @@ fun Juego(navController: NavHostController){
 
         Spacer(Modifier.height(40.dp))
 
-        QuestionProgress(estadoRespuesta,numeroPregunta)
+        QuestionProgress(
+            estadoRespuesta,
+            numeroPregunta
+        )
 
         Spacer(Modifier.height(40.dp))
 
-        if (numeroPregunta >= preguntas.size - 1){
+        // FINAL DEL NIVEL
+        if (numeroPregunta >= preguntas.size - 1) {
 
-            Button(onClick = {
+            Button(
+                onClick = {
 
-                val timeBonus = (600 - tiempoNivel).coerceAtLeast(0) * 10
-                puntuacion += timeBonus
+                    val timeBonus =
+                        (600 - tiempoNivel)
+                            .coerceAtLeast(0) * 10
 
-                UserRepository.saveScore(UserSession.userId, puntuacion)
+                    puntuacion += timeBonus
 
+                    // GUARDAR PUNTUACION
+                    UserRepository.saveScore(
+                        UserSession.userId,
+                        puntuacion
+                    )
 
+                    // MONEDAS
+                    val monedasGanadas =
+                        puntuacion / 100
 
-                val monedasGanadas = puntuacion / 100
-                GachaState.monedas.value += monedasGanadas
-                GachaState.guardar(context)
+                    GachaState.monedas.value +=
+                        monedasGanadas
 
-                if (respuestaCorrecta >= 5) {
-                    tiempoNivel = 0
+                    UserRepository.guardarMonedas(
+                        UserSession.userId,
+                        GachaState.monedas.value
+                    )
 
-                    if (nivel < 5) {
+                    // SI PASA EL NIVEL
+                    if (respuestaCorrecta >= 5) {
+
+                        tiempoNivel = 0
+
                         nivel++
+
                         numeroPregunta = 0
+
                         respuestaCorrecta = 0
-                        repuestaElegida = null
-                        colorFondo = Color.Transparent
 
-                        estadoRespuesta.clear()
-                        val nuevasPreguntas = when (nivel) {
-                            1 -> PreguntasJuego.level1
-                            2 -> PreguntasJuego.level2
-                            else -> PreguntasJuego.level1
-                        }
+                        respuestaElegida = null
 
-                        estadoRespuesta.clear()
-                        repeat(nuevasPreguntas.size) {
-                            estadoRespuesta.add(EstadoRespuesta.PENDING)
-                        }
+                        colorFondo =
+                            Color.Transparent
 
-                    } else {
-                        navController.navigate("Ranking")
                     }
 
-                } else {
-                    navController.navigate("Ranking")
-                }
+                    // SI PIERDE
+                    else {
 
-            }){
+                        navController.navigate("Ranking")
+                    }
+                }
+            ) {
+
                 Text("Finalizar nivel")
             }
         }
@@ -238,15 +351,26 @@ fun Juego(navController: NavHostController){
 }
 
 @Composable
-fun Header(nivel:Int,tiempo:Int,puntuacion:Int){
+fun Header(
+    nivel: Int,
+    tiempo: Int,
+    puntuacion: Int
+) {
+
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ){
+        horizontalArrangement =
+            Arrangement.SpaceBetween
+    ) {
+
         Text("Nivel $nivel")
+
         Text("Tiempo $tiempo")
+
         Column {
+
             Text("Puntuación")
+
             Text("$puntuacion")
         }
     }
@@ -259,22 +383,55 @@ fun Opciones(
     onClick: (Int) -> Unit
 ) {
 
-    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    Column(
+        verticalArrangement =
+            Arrangement.spacedBy(16.dp)
+    ) {
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement =
+                Arrangement.spacedBy(16.dp)
         ) {
-            Boton(opciones[0], Color.Red, Modifier.weight(1f)) { onClick(0) }
-            Boton(opciones[1], Color.Yellow, Modifier.weight(1f)) { onClick(1) }
+
+            Boton(
+                opciones[0],
+                Color.Red,
+                Modifier.weight(1f)
+            ) {
+                onClick(0)
+            }
+
+            Boton(
+                opciones[1],
+                Color.Yellow,
+                Modifier.weight(1f)
+            ) {
+                onClick(1)
+            }
         }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement =
+                Arrangement.spacedBy(16.dp)
         ) {
-            Boton(opciones[2], Color.Cyan, Modifier.weight(1f)) { onClick(2) }
-            Boton(opciones[3], Color.Green, Modifier.weight(1f)) { onClick(3) }
+
+            Boton(
+                opciones[2],
+                Color.Cyan,
+                Modifier.weight(1f)
+            ) {
+                onClick(2)
+            }
+
+            Boton(
+                opciones[3],
+                Color.Green,
+                Modifier.weight(1f)
+            ) {
+                onClick(3)
+            }
         }
     }
 }
@@ -286,11 +443,15 @@ fun Boton(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+
     Button(
         onClick = onClick,
         modifier = modifier.height(60.dp),
-        colors = ButtonDefaults.buttonColors(containerColor = color)
+        colors = ButtonDefaults.buttonColors(
+            containerColor = color
+        )
     ) {
+
         Text(
             text = text,
             fontSize = 16.sp,
@@ -302,27 +463,38 @@ fun Boton(
 
 @Composable
 fun QuestionProgress(
-    states:List<EstadoRespuesta>,
-    currentIndex:Int
-){
+    states: List<EstadoRespuesta>,
+    currentIndex: Int
+) {
+
     Row {
+
         states.forEachIndexed { index, state ->
 
-            val color = when(state){
-                EstadoRespuesta.CORRECT -> Color.Green
-                EstadoRespuesta.WRONG -> Color.Red
-                EstadoRespuesta.CURRENT -> Color(0xFFFFA500)
-                else -> Color.LightGray
+            val color = when (state) {
+
+                EstadoRespuesta.CORRECT ->
+                    Color.Green
+
+                EstadoRespuesta.WRONG ->
+                    Color.Red
+
+                EstadoRespuesta.CURRENT ->
+                    Color(0xFFFFA500)
+
+                else ->
+                    Color.LightGray
             }
 
             Box(
                 modifier = Modifier
                     .size(30.dp)
                     .background(color)
-                    .border(1.dp,Color.Black),
+                    .border(1.dp, Color.Black),
                 contentAlignment = Alignment.Center
-            ){
-                Text("${index+1}")
+            ) {
+
+                Text("${index + 1}")
             }
 
             Spacer(Modifier.width(4.dp))

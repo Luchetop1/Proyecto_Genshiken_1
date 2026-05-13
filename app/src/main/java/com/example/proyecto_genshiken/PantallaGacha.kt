@@ -40,7 +40,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 
 
 @Composable
@@ -48,7 +47,6 @@ import androidx.compose.ui.platform.LocalContext
 
 fun PantallaGacha(navController: NavController) {
 
-    val context = LocalContext.current
     var resultado by remember { mutableStateOf<Espada?>(null) }
 
 
@@ -82,8 +80,17 @@ fun PantallaGacha(navController: NavController) {
                     val espada = tirarGacha()
                     resultado = espada
 
-                    GachaState.añadirEspada(espada.id, context)
-                    GachaState.guardar(context)
+                    GachaState.añadirEspada(espada.id)
+
+                    UserRepository.guardarMonedas(
+                        UserSession.userId,
+                        GachaState.monedas.value
+                    )
+
+                    UserRepository.guardarEspada(
+                        UserSession.userId,
+                        espada.id
+                    )
                 }
             }
         ) {

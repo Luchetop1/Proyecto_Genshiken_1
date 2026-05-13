@@ -1,8 +1,14 @@
 package com.example.proyecto_genshiken
 
 data class Preguntas(
-    val imagen: Int,
-    val preguntas: String,
-    val opciones: List<String>,
-    val opcionCorrecta: Int
+
+    val id:Int,
+
+    val pregunta:String,
+
+    val imagenPregunta:String,
+
+    val opciones:List<String>,
+
+    val opcionCorrecta:Int
 )

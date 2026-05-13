@@ -129,15 +129,20 @@ fun InicioCompetitivo(navController: NavHostController) {
                                 UserSession.userId = id
                                 UserSession.userName = nombre
 
+                                UserRepository.obtenerMonedas(id) { monedas ->
+                                    GachaState.monedas.value = monedas
+                                }
+
+                                UserRepository.obtenerEspadas(id) { espadas ->
+                                    GachaState.espadasDesbloqueadas.clear()
+                                    GachaState.espadasDesbloqueadas.addAll(espadas)
+                                }
+
                                 navController.navigate("Juego")
 
-                            }
-                            else if(email.isBlank() || contraseña.isBlank()){
-                                mensajeError="no pueden haber campos sin información"
-                            }
+                            } else {
 
-                            else {
-                                mensajeError = "Correo o contraseña incorrectos"
+                                mensajeError = "Correo no verificado o datos incorrectos"
                             }
                         }
 
@@ -163,6 +168,23 @@ fun InicioCompetitivo(navController: NavHostController) {
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.clickable {
                         navController.navigate("RegistroCompeti")
+                    }
+                )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = "Reenviar correo de verificación",
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.clickable {
+
+                        UserRepository.reenviarVerificacion(email) {
+
+                            mensajeError = when(it) {
+                                "ENVIADO" -> "Correo enviado"
+                                "YA_VERIFICADO" -> "La cuenta ya está verificada"
+                                else -> "Error enviando correo"
+                            }
+                        }
                     }
                 )
             }

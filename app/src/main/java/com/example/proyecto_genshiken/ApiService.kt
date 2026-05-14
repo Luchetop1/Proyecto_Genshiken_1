@@ -29,7 +29,13 @@ interface ApiService {
     ): Call<String>
 
     @GET("get_ranking.php")
-    fun getRanking(): Call<List<Player>>
+    fun getRanking(
+
+        @Query("mes") mes:Int,
+
+        @Query("anio") anio:Int
+
+    ): Call<List<Player>>
 
     @FormUrlEncoded
     @POST("change_name.php")

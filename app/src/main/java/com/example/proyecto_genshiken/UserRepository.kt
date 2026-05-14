@@ -87,20 +87,32 @@ object UserRepository {
     // Con esto obtendremos el Ranking de los mejores jugadores, para asi poder ponerlos en la tabla
 
     fun getRanking(
-        onResult: (List<Player>) -> Unit
-    ) {
+        mes:Int,
+        anio:Int,
+        onResult:(List<Player>) -> Unit
+    ){
 
-        RetrofitClient.api.getRanking()
-            .enqueue(object : Callback<List<Player>> {
+        RetrofitClient.api.getRanking(
+            mes,
+            anio
+        ).enqueue(object : Callback<List<Player>> {
 
-                override fun onResponse(call: Call<List<Player>>, response: Response<List<Player>>) {
-                    onResult(response.body() ?: emptyList())
-                }
+            override fun onResponse(
+                call: Call<List<Player>>,
+                response: Response<List<Player>>
+            ) {
 
-                override fun onFailure(call: Call<List<Player>>, t: Throwable) {
-                    onResult(emptyList())
-                }
-            })
+                onResult(response.body() ?: emptyList())
+            }
+
+            override fun onFailure(
+                call: Call<List<Player>>,
+                t: Throwable
+            ) {
+
+                onResult(emptyList())
+            }
+        })
     }
         // con esta funcion permitiremos el cambio de nombre
     fun changeName(

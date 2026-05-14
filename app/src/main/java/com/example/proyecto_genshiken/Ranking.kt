@@ -1,124 +1,298 @@
 package com.example.proyecto_genshiken
 
-
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.proyecto_genshiken.Player
+import java.util.Calendar
 
+@Composable
+fun Ranking(navController: NavController) {
 
+    var ranking by remember {
+        mutableStateOf<List<Player>>(emptyList())
+    }
 
-    @Composable
-    fun Ranking(navController: NavController) {
+    val meses = listOf(
+        "Enero","Febrero","Marzo","Abril",
+        "Mayo","Junio","Julio","Agosto",
+        "Septiembre","Octubre","Noviembre","Diciembre"
+    )
 
-        var ranking by remember { mutableStateOf<List<Player>>(emptyList()) }
+    val calendario = Calendar.getInstance()
 
-        LaunchedEffect(Unit) {
-            UserRepository.getRanking {
-                ranking = it
-            }
-        }
+    var mesSeleccionado by remember {
+        mutableIntStateOf(
+            calendario.get(Calendar.MONTH) + 1
+        )
+    }
 
-        val sortedRanking = ranking.sortedByDescending { it.puntuacion }
+    var anioSeleccionado by remember {
+        mutableIntStateOf(
+            calendario.get(Calendar.YEAR)
+        )
+    }
 
-        val top10 = sortedRanking.take(10)
+    var expandedMes by remember {
+        mutableStateOf(false)
+    }
 
-        val userIndex = sortedRanking.indexOfFirst {
-            it.nombre == UserSession.userName
-        }
+    var expandedAnio by remember {
+        mutableStateOf(false)
+    }
 
-        val userPosition = userIndex + 1
-        val userData = sortedRanking.getOrNull(userIndex)
+    val anios = (2026..2040).toList()
 
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+    LaunchedEffect(
+        mesSeleccionado,
+        anioSeleccionado
+    ) {
 
+        UserRepository.getRanking(
+            mesSeleccionado,
+            anioSeleccionado
         ) {
-            Spacer(Modifier.height(40.dp))
-            Text("RANKING", fontSize = 30.sp)
 
+            ranking = it
+        }
+    }
 
-            Spacer(Modifier.height(20.dp))
+    val top10 = ranking.take(10)
 
-            // LA CABECERA
-            Row(Modifier.fillMaxWidth()) {
-                Text("Puesto", Modifier.weight(1f))
-                Text("Nombre", Modifier.weight(2f))
-                Text("Puntuación", Modifier.weight(1f))
-            }
+    val userIndex = ranking.indexOfFirst {
+        it.nombre == UserSession.userName
+    }
 
-            Spacer(Modifier.height(10.dp))
+    val userData = ranking.getOrNull(userIndex)
 
-            // aqui se puede ver el TOP 10
-            LazyColumn(
-                modifier = Modifier.weight(1f)
-            ) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
 
-                itemsIndexed(top10) { index, player ->
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
 
-                    val color = when (index) {
-                        0 -> Color(0xFFFFD700) // este color es para el oro (la de letras que he tenido que probar para que salga el color que mas se pareciera...)
-                        1 -> Color(0xFFC0C0C0) // Plata
-                        2 -> Color(0xFFCD7F32) // Bronce
-                        else -> Color.Transparent
+        Spacer(Modifier.height(30.dp))
+
+        Text(
+            "RANKING",
+            fontSize = 32.sp
+        )
+
+        Spacer(Modifier.height(20.dp))
+
+        Row {
+
+            Box {
+
+                Button(
+                    onClick = {
+                        expandedMes = true
                     }
+                ) {
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(color)
-                            .padding(8.dp)
-                    ) {
-                        Text("${index + 1}", Modifier.weight(1f))
-                        Text(player.nombre, Modifier.weight(2f))
-                        Text("${player.puntuacion}", Modifier.weight(1f))
+                    Text(
+                        meses[mesSeleccionado - 1]
+                    )
+                }
+
+                DropdownMenu(
+                    expanded = expandedMes,
+                    onDismissRequest = {
+                        expandedMes = false
+                    }
+                ) {
+
+                    meses.forEachIndexed { index, mes ->
+
+                        DropdownMenuItem(
+                            text = {
+                                Text(mes)
+                            },
+                            onClick = {
+
+                                mesSeleccionado =
+                                    index + 1
+
+                                expandedMes = false
+                            }
+                        )
                     }
                 }
             }
 
-            Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.width(10.dp))
 
-            // Aqui va el usuario
-            Text("Tu posición", fontSize = 20.sp)
+            Box {
 
-            Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = {
+                        expandedAnio = true
+                    }
+                ) {
 
-            userData?.let {
+                    Text("$anioSeleccionado")
+                }
+
+                DropdownMenu(
+                    expanded = expandedAnio,
+                    onDismissRequest = {
+                        expandedAnio = false
+                    }
+                ) {
+
+                    anios.forEach { anio ->
+
+                        DropdownMenuItem(
+                            text = {
+                                Text("$anio")
+                            },
+                            onClick = {
+
+                                anioSeleccionado =
+                                    anio
+
+                                expandedAnio = false
+                            }
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        Row(
+            Modifier.fillMaxWidth()
+        ) {
+
+            Text(
+                "Pos",
+                Modifier.weight(1f)
+            )
+
+            Text(
+                "Nombre",
+                Modifier.weight(2f)
+            )
+
+            Text(
+                "Pts",
+                Modifier.weight(1f)
+            )
+
+            Text(
+                "Tiempo",
+                Modifier.weight(1f)
+            )
+        }
+
+        Spacer(Modifier.height(10.dp))
+
+        LazyColumn(
+            modifier = Modifier.weight(1f)
+        ) {
+
+            itemsIndexed(top10) { index, player ->
+
+                val color = when(index){
+
+                    0 -> Color(0xFFFFD700)
+                    1 -> Color(0xFFC0C0C0)
+                    2 -> Color(0xFFCD7F32)
+
+                    else -> Color.Transparent
+                }
 
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.Cyan)
+                        .background(color)
                         .padding(8.dp)
                 ) {
-                    Text("$userPosition", Modifier.weight(1f))
-                    Text(it.nombre, Modifier.weight(2f))
-                    Text("${it.puntuacion}", Modifier.weight(1f))
+
+                    Text(
+                        "${player.posicion}",
+                        Modifier.weight(1f)
+                    )
+
+                    Text(
+                        player.nombre,
+                        Modifier.weight(2f)
+                    )
+
+                    Text(
+                        "${player.puntuacion}",
+                        Modifier.weight(1f)
+                    )
+
+                    Text(
+                        "${player.tiempo}",
+                        Modifier.weight(1f)
+                    )
                 }
             }
+        }
 
-            Spacer(Modifier.height(20.dp))
+        Spacer(Modifier.height(20.dp))
 
-            Button(onClick = {
-                navController.navigate("inicio")
-            }) {
-                Text("Volver al inicio")
+        Text(
+            "Tu posición",
+            fontSize = 22.sp
+        )
+
+        Spacer(Modifier.height(10.dp))
+
+        userData?.let {
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.Cyan)
+                    .padding(8.dp)
+            ) {
+
+                Text(
+                    "${it.posicion}",
+                    Modifier.weight(1f)
+                )
+
+                Text(
+                    it.nombre,
+                    Modifier.weight(2f)
+                )
+
+                Text(
+                    "${it.puntuacion}",
+                    Modifier.weight(1f)
+                )
+
+                Text(
+                    "${it.tiempo}",
+                    Modifier.weight(1f)
+                )
             }
         }
+
+        Spacer(Modifier.height(20.dp))
+
+        Button(
+            onClick = {
+                navController.navigate("inicio")
+            }
+        ) {
+
+            Text("Volver")
+        }
     }
+}

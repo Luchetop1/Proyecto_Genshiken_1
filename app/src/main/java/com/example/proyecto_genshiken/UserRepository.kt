@@ -71,17 +71,37 @@ object UserRepository {
 
     // Con esta funcion Guardaremos la puntuacion del jugador
     fun saveScore(
-        usuarioId: Int,
-        puntuacion: Int
+        userId: Int,
+        puntuacion: Int,
+        tiempo: Int,
+        onResult: (Boolean) -> Unit
     ) {
 
-        RetrofitClient.api.saveScore(usuarioId, puntuacion)
-            .enqueue(object : Callback<String> {
+        RetrofitClient.api.saveScore(
+            userId,
+            puntuacion,
+            tiempo
+        ).enqueue(object : Callback<ResponseBody> {
 
-                override fun onResponse(call: Call<String>, response: Response<String>) {}
+            override fun onResponse(
+                call: Call<ResponseBody>,
+                response: Response<ResponseBody>
+            ) {
 
-                override fun onFailure(call: Call<String>, t: Throwable) {}
-            })
+                val resultado =
+                    response.body()?.string()?.trim()
+
+                onResult(resultado == "OK")
+            }
+
+            override fun onFailure(
+                call: Call<ResponseBody>,
+                t: Throwable
+            ) {
+
+                onResult(false)
+            }
+        })
     }
 
     // Con esto obtendremos el Ranking de los mejores jugadores, para asi poder ponerlos en la tabla

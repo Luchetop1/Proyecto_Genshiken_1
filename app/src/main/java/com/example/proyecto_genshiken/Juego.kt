@@ -21,9 +21,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,10 +40,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
@@ -46,16 +57,21 @@ import kotlinx.coroutines.delay
 fun Juego(navController: NavHostController) {
 
     var nivel by remember { mutableStateOf(1) }
-    var numeroPregunta by remember { mutableStateOf(0) }
-    var puntuacion by remember { mutableStateOf(0) }
-    var respuestaCorrecta by remember { mutableStateOf(0) }
+
+    var numeroPregunta by remember {
+        mutableStateOf(0)
+    }
+
+    var puntuacion by remember {
+        mutableStateOf(0)
+    }
+
+    var respuestaCorrecta by remember {
+        mutableStateOf(0)
+    }
 
     var respuestaElegida by remember {
         mutableStateOf<Int?>(null)
-    }
-
-    var colorFondo by remember {
-        mutableStateOf(Color.Transparent)
     }
 
     val estadoRespuesta = remember {
@@ -77,28 +93,54 @@ fun Juego(navController: NavHostController) {
     var cargando by remember {
         mutableStateOf(true)
     }
+    var finContenido by remember {
+        mutableStateOf(false)
+    }
 
-    // CARGAR PREGUNTAS DESDE MYSQL
+    /*
+    --------------------------------------------------
+    CARGAR PREGUNTAS
+    --------------------------------------------------
+    */
     LaunchedEffect(nivel) {
 
         cargando = true
 
-        UserRepository.obtenerPreguntas(nivel) {
+        UserRepository.obtenerPreguntas(nivel) { listaPreguntas ->
 
-            preguntas = it
             cargando = false
+
+            // NO HAY MÁS PREGUNTAS
+            if (listaPreguntas.isEmpty()) {
+
+                finContenido = true
+
+                return@obtenerPreguntas
+            }
+
+            preguntas = listaPreguntas
 
             numeroPregunta = 0
 
             estadoRespuesta.clear()
 
-            repeat(it.size) {
-                estadoRespuesta.add(EstadoRespuesta.PENDING)
+            repeat(listaPreguntas.size) {
+
+                estadoRespuesta.add(
+                    EstadoRespuesta.PENDING
+                )
             }
+
+            estadoRespuesta[0] =
+                EstadoRespuesta.CURRENT
         }
     }
 
-    // EL TEMPORIZADOR
+    /*
+    --------------------------------------------------
+    TEMPORIZADOR
+    --------------------------------------------------
+    */
     LaunchedEffect(Unit) {
 
         while (true) {
@@ -110,12 +152,16 @@ fun Juego(navController: NavHostController) {
         }
     }
 
-    // CAMBIO AUTOMATICO ENTRE PREGUNTAS
+    /*
+    --------------------------------------------------
+    CAMBIO AUTOMÁTICO DE PREGUNTA
+    --------------------------------------------------
+    */
     LaunchedEffect(respuestaElegida) {
 
         if (respuestaElegida != null) {
 
-            delay(800)
+            delay(700)
 
             if (numeroPregunta < preguntas.size - 1) {
 
@@ -123,53 +169,150 @@ fun Juego(navController: NavHostController) {
 
                 respuestaElegida = null
 
-                colorFondo = Color.Transparent
-
                 estadoRespuesta[numeroPregunta] =
                     EstadoRespuesta.CURRENT
             }
         }
     }
 
-    // PANTALLA DE CARGA
+    /*
+    --------------------------------------------------
+    CARGANDO
+    --------------------------------------------------
+    */
     if (cargando) {
 
         Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-
-            Text("Cargando preguntas...")
-        }
-
-        return
-    }
-
-    // SI NO HAY PREGUNTAS EN EL NIVEL
-    if (preguntas.isEmpty()) {
-
-        Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            Color(0xFF0F172A),
+                            Color(0xFF1E293B)
+                        )
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
 
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                horizontalAlignment =
+                    Alignment.CenterHorizontally
             ) {
 
                 Text(
-                    text = "No hay preguntas disponibles",
-                    fontSize = 22.sp
+                    text = "Cargando preguntas...",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
                 )
 
                 Spacer(modifier = Modifier.height(20.dp))
 
-                Button(
-                    onClick = {
-                        navController.navigate("Ranking")
-                    }
+                LinearProgressIndicator(
+                    modifier = Modifier.width(220.dp)
+                )
+            }
+        }
+
+        return
+    }
+
+    /*
+--------------------------------------------------
+JUEGO COMPLETADO / SIN MÁS PREGUNTAS
+--------------------------------------------------
+*/
+    if (finContenido) {
+
+        LaunchedEffect(Unit) {
+
+            delay(3000)
+
+            navController.navigate("Ranking") {
+
+                popUpTo("Juego") {
+                    inclusive = true
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            Color(0xFF0F172A),
+                            Color(0xFF1E293B),
+                            Color(0xFF111827)
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+
+            Card(
+                shape = RoundedCornerShape(28.dp),
+
+                colors = CardDefaults.cardColors(
+                    containerColor =
+                        Color.White.copy(alpha = 0.95f)
+                )
+            ) {
+
+                Column(
+                    modifier = Modifier.padding(34.dp),
+
+                    horizontalAlignment =
+                        Alignment.CenterHorizontally
                 ) {
-                    Text("Volver")
+
+                    Text(
+                        text = "🎉 JUEGO COMPLETADO 🎉",
+
+                        fontSize = 28.sp,
+
+                        fontWeight = FontWeight.ExtraBold,
+
+                        color = Color(0xFF1E3A8A),
+
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(22.dp))
+
+                    Text(
+                        text =
+                            "No hay más preguntas disponibles por ahora.",
+
+                        fontSize = 18.sp,
+
+                        color = Color.DarkGray,
+
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text =
+                            "Redirigiendo al ranking...",
+
+                        fontSize = 15.sp,
+
+                        color = Color.Gray
+                    )
+
+                    Spacer(modifier = Modifier.height(26.dp))
+
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(8.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                    )
                 }
             }
         }
@@ -177,205 +320,506 @@ fun Juego(navController: NavHostController) {
         return
     }
 
-    Column(
+    /*
+    --------------------------------------------------
+    CONTENIDO PRINCIPAL
+    --------------------------------------------------
+    */
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState())
-            .padding(bottom = 24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        Color(0xFF0F172A),
+                        Color(0xFF1E293B),
+                        Color(0xFF111827)
+                    )
+                )
+            )
     ) {
 
-        Spacer(Modifier.height(40.dp))
-
-        Header(
-            nivel,
-            tiempoTotal,
-            puntuacion
-        )
-
-        Spacer(Modifier.height(40.dp))
-
-        AnimatedContent(
-            targetState = numeroPregunta,
-            transitionSpec = {
-
-                slideInHorizontally(
-                    animationSpec = tween(200),
-                    initialOffsetX = { it }
-
-                ) + fadeIn() togetherWith
-
-                        slideOutHorizontally(
-                            animationSpec = tween(200),
-                            targetOffsetX = { -it }
-
-                        ) + fadeOut()
-            },
-            label = "AnimacionPregunta"
-        ) { index ->
-
-            val pregunta = preguntas[index]
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                // IMAGEN DE LA PREGUNTA
-                AsyncImage(
-                    model = pregunta.imagenPregunta,
-                    contentDescription = null,
-                    modifier = Modifier.size(220.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(
+                    rememberScrollState()
                 )
+                .padding(18.dp),
 
-                Spacer(Modifier.height(40.dp))
+            horizontalAlignment =
+                Alignment.CenterHorizontally
+        ) {
 
-                Box(
+            Spacer(modifier = Modifier.height(24.dp))
+
+            /*
+            --------------------------------------------------
+            HEADER
+            --------------------------------------------------
+            */
+            Header(
+                nivel = nivel,
+                tiempo = tiempoTotal,
+                puntuacion = puntuacion,
+                preguntaActual = numeroPregunta + 1,
+                totalPreguntas = preguntas.size
+            )
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            /*
+            --------------------------------------------------
+            TARJETA PRINCIPAL
+            --------------------------------------------------
+            */
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(28.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor =
+                        Color.White.copy(alpha = 0.96f)
+                ),
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 10.dp
+                )
+            ) {
+                AnimatedContent(
+                    targetState = numeroPregunta,
+
+                    transitionSpec = {
+
+                        slideInHorizontally(
+                            animationSpec = tween(250),
+                            initialOffsetX = { it }
+
+                        ) + fadeIn() togetherWith
+
+                                slideOutHorizontally(
+                                    animationSpec = tween(250),
+                                    targetOffsetX = { -it }
+
+                                ) + fadeOut()
+                    },
+
+                    label = "AnimacionPregunta"
+
+                ) { index ->
+
+                    val pregunta = preguntas.getOrNull(index)
+
+                    if (pregunta == null) {
+
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(300.dp),
+
+                            contentAlignment = Alignment.Center
+                        ) {
+
+                            Text(
+                                text = "Cargando siguiente nivel...",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color.Gray
+                            )
+                        }
+
+                        return@AnimatedContent
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+
+                        horizontalAlignment =
+                            Alignment.CenterHorizontally
+                    ) {
+
+                        Surface(
+                            shape = RoundedCornerShape(22.dp),
+                            tonalElevation = 6.dp
+                        ) {
+
+                            AsyncImage(
+                                model =
+                                    pregunta.imagenPregunta,
+
+                                contentDescription = null,
+
+                                contentScale =
+                                    ContentScale.Crop,
+
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(240.dp)
+                            )
+                        }
+
+                        Spacer(
+                            modifier = Modifier.height(26.dp)
+                        )
+
+                        Text(
+                            text = pregunta.pregunta,
+
+                            fontSize = 23.sp,
+
+                            fontWeight =
+                                FontWeight.ExtraBold,
+
+                            color = Color(0xFF1E293B),
+
+                            textAlign = TextAlign.Center
+                        )
+
+                        Spacer(
+                            modifier = Modifier.height(28.dp)
+                        )
+
+                        Opciones(
+                            opciones = pregunta.opciones,
+                            respuestaElegida =
+                                respuestaElegida,
+
+                            onClick = { indexRespuesta ->
+
+                                if (respuestaElegida == null) {
+
+                                    respuestaElegida =
+                                        indexRespuesta
+
+                                    if (
+                                        indexRespuesta ==
+                                        pregunta.opcionCorrecta
+                                    ) {
+
+                                        puntuacion += 1000
+
+                                        respuestaCorrecta++
+
+                                        estadoRespuesta[
+                                            numeroPregunta
+                                        ] =
+                                            EstadoRespuesta.CORRECT
+
+                                    } else {
+
+                                        puntuacion -= 200
+
+                                        estadoRespuesta[
+                                            numeroPregunta
+                                        ] =
+                                            EstadoRespuesta.WRONG
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(28.dp))
+
+            /*
+            --------------------------------------------------
+            PROGRESO
+            --------------------------------------------------
+            */
+            QuestionProgress(
+                states = estadoRespuesta,
+                currentIndex = numeroPregunta
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            /*
+            --------------------------------------------------
+            BOTÓN FINALIZAR
+            --------------------------------------------------
+            */
+            if (numeroPregunta >= preguntas.size - 1) {
+
+                Button(
+                    onClick = {
+
+                        // 1. congelamos puntuación de preguntas
+                        val puntuacionBase = puntuacion
+
+                        // 2. bonus de tiempo SOLO final
+                        val timeBonus =
+                            ((600 - tiempoNivel).coerceAtLeast(0)) * 10
+
+                        val puntuacionFinal = puntuacionBase + timeBonus
+
+                        // 3. guardamos score REAL (inmutable)
+                        UserRepository.saveScore(
+                            UserSession.userId,
+                            puntuacionFinal,
+                            tiempoTotal
+                        ) { guardado ->
+
+                            if (guardado) {
+
+                                GameSession.lastScore = puntuacionFinal
+                                GameSession.lastTime = tiempoTotal
+
+                                // monedas
+                                val monedasGanadas = puntuacionFinal / 100
+
+                                GachaState.monedas.value += monedasGanadas
+
+                                UserRepository.guardarMonedas(
+                                    UserSession.userId,
+                                    GachaState.monedas.value
+                                )
+
+                                // lógica niveles
+                                if (respuestaCorrecta >= 5) {
+
+                                    val siguienteNivel = nivel + 1
+
+                                    UserRepository.obtenerPreguntas(
+                                        siguienteNivel
+                                    ) { lista ->
+
+                                        if (lista.isNullOrEmpty()) {
+
+                                            navController.navigate("Ranking") {
+                                                popUpTo("Juego") {
+                                                    inclusive = true
+                                                }
+                                            }
+
+                                        } else {
+
+                                            nivel = siguienteNivel
+                                            preguntas = lista
+                                            numeroPregunta = 0
+                                            respuestaCorrecta = 0
+                                            respuestaElegida = null
+
+                                            estadoRespuesta.clear()
+
+                                            repeat(lista.size) {
+
+                                                estadoRespuesta.add(
+                                                    EstadoRespuesta.PENDING
+                                                )
+                                            }
+
+                                            estadoRespuesta[0] =
+                                                EstadoRespuesta.CURRENT
+
+                                            tiempoNivel = 0
+                                        }
+                                    }
+
+                                } else {
+
+                                    navController.navigate("Ranking") {
+
+                                        popUpTo("Juego") {
+                                            inclusive = true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // 4. monedas basadas en score final
+                        val monedasGanadas = puntuacionFinal / 100
+
+                        GachaState.monedas.value += monedasGanadas
+
+                        UserRepository.guardarMonedas(
+                            UserSession.userId,
+                            GachaState.monedas.value
+                        )
+
+                        // 5. lógica de nivel
+                        if (respuestaCorrecta >= 5) {
+
+                            val siguienteNivel = nivel + 1
+
+                            UserRepository.obtenerPreguntas(siguienteNivel) { lista ->
+
+                                if (lista.isNullOrEmpty()) {
+                                    GameSession.lastScore = puntuacionFinal
+                                    GameSession.lastTime = tiempoTotal
+                                    navController.navigate("Ranking") {
+                                        popUpTo("Juego") { inclusive = true }
+                                    }
+
+                                } else {
+
+                                    nivel = siguienteNivel
+                                    preguntas = lista
+                                    numeroPregunta = 0
+                                    respuestaCorrecta = 0
+                                    respuestaElegida = null
+
+                                    estadoRespuesta.clear()
+                                    repeat(lista.size) {
+                                        estadoRespuesta.add(EstadoRespuesta.PENDING)
+                                    }
+                                    estadoRespuesta[0] = EstadoRespuesta.CURRENT
+
+                                    tiempoNivel = 0
+                                }
+                            }
+
+                        } else {
+                            GameSession.lastScore = puntuacionFinal
+                            GameSession.lastTime = tiempoTotal
+                            navController.navigate("Ranking") {
+                                popUpTo("Juego") { inclusive = true }
+                            }
+                        }
+                    },
+
                     modifier = Modifier
-                        .background(colorFondo)
-                        .padding(8.dp)
+                        .fillMaxWidth()
+                        .height(58.dp),
+
+                    shape = RoundedCornerShape(18.dp),
+
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor =
+                            Color(0xFFFACC15),
+
+                        contentColor =
+                            Color.Black
+                    )
                 ) {
 
                     Text(
-                        text = pregunta.pregunta,
-                        fontSize = 20.sp
+                        text = "Finalizar nivel",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
                     )
                 }
-
-                Spacer(Modifier.height(40.dp))
-
-                Opciones(
-                    opciones = pregunta.opciones,
-                    respuestaElegida = respuestaElegida,
-                    onClick = { indexRespuesta ->
-
-                        if (respuestaElegida == null) {
-
-                            respuestaElegida =
-                                indexRespuesta
-
-                            if (
-                                indexRespuesta ==
-                                pregunta.opcionCorrecta
-                            ) {
-
-                                puntuacion += 1000
-
-                                respuestaCorrecta++
-
-                                estadoRespuesta[numeroPregunta] =
-                                    EstadoRespuesta.CORRECT
-
-                            } else {
-
-                                puntuacion -= 200
-
-                                estadoRespuesta[numeroPregunta] =
-                                    EstadoRespuesta.WRONG
-                            }
-                        }
-                    }
-                )
             }
-        }
 
-        Spacer(Modifier.height(40.dp))
-
-        QuestionProgress(
-            estadoRespuesta,
-            numeroPregunta
-        )
-
-        Spacer(Modifier.height(40.dp))
-
-        // FINAL DEL NIVEL
-        if (numeroPregunta >= preguntas.size - 1) {
-
-            Button(
-                onClick = {
-
-                    val timeBonus =
-                        (600 - tiempoNivel)
-                            .coerceAtLeast(0) * 10
-
-                    puntuacion += timeBonus
-
-                    // GUARDAR PUNTUACION
-                    UserRepository.saveScore(
-                        UserSession.userId,
-                        puntuacion
-                    )
-
-                    // MONEDAS
-                    val monedasGanadas =
-                        puntuacion / 100
-
-                    GachaState.monedas.value +=
-                        monedasGanadas
-
-                    UserRepository.guardarMonedas(
-                        UserSession.userId,
-                        GachaState.monedas.value
-                    )
-
-                    // SI PASA EL NIVEL
-                    if (respuestaCorrecta >= 5) {
-
-                        tiempoNivel = 0
-
-                        nivel++
-
-                        numeroPregunta = 0
-
-                        respuestaCorrecta = 0
-
-                        respuestaElegida = null
-
-                        colorFondo =
-                            Color.Transparent
-
-                    }
-
-                    // SI PIERDE
-                    else {
-
-                        navController.navigate("Ranking")
-                    }
-                }
-            ) {
-
-                Text("Finalizar nivel")
-            }
+            Spacer(modifier = Modifier.height(30.dp))
         }
     }
 }
 
+/*
+--------------------------------------------------
+HEADER SUPERIOR
+--------------------------------------------------
+*/
 @Composable
 fun Header(
     nivel: Int,
     tiempo: Int,
-    puntuacion: Int
+    puntuacion: Int,
+    preguntaActual: Int,
+    totalPreguntas: Int
 ) {
 
-    Row(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement =
-            Arrangement.SpaceBetween
+
+        shape = RoundedCornerShape(24.dp),
+
+        colors = CardDefaults.cardColors(
+            containerColor =
+                Color.White.copy(alpha = 0.95f)
+        )
     ) {
 
-        Text("Nivel $nivel")
+        Column(
+            modifier = Modifier.padding(18.dp)
+        ) {
 
-        Text("Tiempo $tiempo")
+            Row(
+                modifier = Modifier.fillMaxWidth(),
 
-        Column {
+                horizontalArrangement =
+                    Arrangement.SpaceBetween
+            ) {
 
-            Text("Puntuación")
+                Estadistica(
+                    titulo = "Nivel",
+                    valor = "$nivel"
+                )
 
-            Text("$puntuacion")
+                Estadistica(
+                    titulo = "Tiempo",
+                    valor = "${tiempo}s"
+                )
+
+                Estadistica(
+                    titulo = "Puntos",
+                    valor = "$puntuacion"
+                )
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+
+            Text(
+                text = "Pregunta $preguntaActual de $totalPreguntas",
+
+                fontWeight = FontWeight.Bold,
+
+                color = Color(0xFF1E293B)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LinearProgressIndicator(
+                progress = {
+                    preguntaActual.toFloat() /
+                            totalPreguntas.toFloat()
+                }
+            )
         }
     }
 }
 
+/*
+--------------------------------------------------
+ESTADÍSTICAS
+--------------------------------------------------
+*/
+@Composable
+fun Estadistica(
+    titulo: String,
+    valor: String
+) {
+
+    Column(
+        horizontalAlignment =
+            Alignment.CenterHorizontally
+    ) {
+
+        Text(
+            text = titulo,
+            fontSize = 13.sp,
+            color = Color.Gray
+        )
+
+        Spacer(modifier = Modifier.height(4.dp))
+
+        Text(
+            text = valor,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.ExtraBold,
+            color = Color(0xFF1E3A8A)
+        )
+    }
+}
+
+/*
+--------------------------------------------------
+OPCIONES
+--------------------------------------------------
+*/
 @Composable
 fun Opciones(
     opciones: List<String>,
@@ -385,50 +829,52 @@ fun Opciones(
 
     Column(
         verticalArrangement =
-            Arrangement.spacedBy(16.dp)
+            Arrangement.spacedBy(14.dp)
     ) {
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement =
-                Arrangement.spacedBy(16.dp)
+                Arrangement.spacedBy(14.dp)
         ) {
 
-            Boton(
-                opciones[0],
-                Color.Red,
-                Modifier.weight(1f)
+            BotonRespuesta(
+                text = opciones[0],
+                color = Color(0xFFEF4444),
+                modifier = Modifier.weight(1f),
+                enabled = respuestaElegida == null
             ) {
                 onClick(0)
             }
 
-            Boton(
-                opciones[1],
-                Color.Yellow,
-                Modifier.weight(1f)
+            BotonRespuesta(
+                text = opciones[1],
+                color = Color(0xFFFACC15),
+                modifier = Modifier.weight(1f),
+                enabled = respuestaElegida == null
             ) {
                 onClick(1)
             }
         }
 
         Row(
-            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement =
-                Arrangement.spacedBy(16.dp)
+                Arrangement.spacedBy(14.dp)
         ) {
 
-            Boton(
-                opciones[2],
-                Color.Cyan,
-                Modifier.weight(1f)
+            BotonRespuesta(
+                text = opciones[2],
+                color = Color(0xFF38BDF8),
+                modifier = Modifier.weight(1f),
+                enabled = respuestaElegida == null
             ) {
                 onClick(2)
             }
 
-            Boton(
-                opciones[3],
-                Color.Green,
-                Modifier.weight(1f)
+            BotonRespuesta(
+                text = opciones[3],
+                color = Color(0xFF4ADE80),
+                modifier = Modifier.weight(1f),
+                enabled = respuestaElegida == null
             ) {
                 onClick(3)
             }
@@ -436,68 +882,114 @@ fun Opciones(
     }
 }
 
+/*
+--------------------------------------------------
+BOTONES RESPUESTA
+--------------------------------------------------
+*/
 @Composable
-fun Boton(
+fun BotonRespuesta(
     text: String,
     color: Color,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     onClick: () -> Unit
 ) {
 
     Button(
         onClick = onClick,
-        modifier = modifier.height(60.dp),
+
+        enabled = enabled,
+
+        modifier = modifier.height(74.dp),
+
+        shape = RoundedCornerShape(18.dp),
+
         colors = ButtonDefaults.buttonColors(
-            containerColor = color
+            containerColor = color,
+            disabledContainerColor =
+                color.copy(alpha = 0.5f),
+
+            contentColor = Color.Black
         )
     ) {
 
         Text(
             text = text,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
+
+            fontSize = 15.sp,
+
+            textAlign = TextAlign.Center,
+
+            fontWeight = FontWeight.Bold
         )
     }
 }
 
+/*
+--------------------------------------------------
+PROGRESO DE PREGUNTAS
+--------------------------------------------------
+*/
 @Composable
 fun QuestionProgress(
     states: List<EstadoRespuesta>,
     currentIndex: Int
 ) {
 
-    Row {
+    Row(
+        horizontalArrangement =
+            Arrangement.Center
+    ) {
 
         states.forEachIndexed { index, state ->
 
             val color = when (state) {
 
                 EstadoRespuesta.CORRECT ->
-                    Color.Green
+                    Color(0xFF22C55E)
 
                 EstadoRespuesta.WRONG ->
-                    Color.Red
+                    Color(0xFFEF4444)
 
                 EstadoRespuesta.CURRENT ->
-                    Color(0xFFFFA500)
+                    Color(0xFFFACC15)
 
                 else ->
-                    Color.LightGray
+                    Color(0xFFCBD5E1)
             }
 
             Box(
                 modifier = Modifier
-                    .size(30.dp)
+                    .padding(horizontal = 4.dp)
+                    .size(
+                        if (index == currentIndex)
+                            34.dp
+                        else
+                            28.dp
+                    )
+                    .clip(CircleShape)
                     .background(color)
-                    .border(1.dp, Color.Black),
-                contentAlignment = Alignment.Center
+                    .border(
+                        width = 2.dp,
+                        color = Color.White,
+                        shape = CircleShape
+                    ),
+
+                contentAlignment =
+                    Alignment.Center
             ) {
 
-                Text("${index + 1}")
-            }
+                Text(
+                    text = "${index + 1}",
 
-            Spacer(Modifier.width(4.dp))
+                    color = Color.Black,
+
+                    fontWeight = FontWeight.Bold,
+
+                    fontSize = 13.sp
+                )
+            }
         }
     }
 }

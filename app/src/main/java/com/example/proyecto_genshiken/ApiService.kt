@@ -17,16 +17,24 @@ interface ApiService {
     @FormUrlEncoded
     @POST("login.php")
     fun login(
-        @Field("correo") correo:String,
-        @Field("password") password:String
+        @Field("correo") correo: String,
+        @Field("password") password: String
     ): Call<ResponseBody>
-
     @FormUrlEncoded
     @POST("save_score.php")
     fun saveScore(
-        @Field("usuario_id") usuarioId:Int,
-        @Field("puntuacion") puntuacion:Int
-    ): Call<String>
+
+        @Field("usuario_id")
+        usuarioId: Int,
+
+        @Field("puntuacion")
+        puntuacion: Int,
+
+        @Field("tiempo")
+        tiempo: Int
+
+    ): Call<ResponseBody>
+
 
     @GET("get_ranking.php")
     fun getRanking(

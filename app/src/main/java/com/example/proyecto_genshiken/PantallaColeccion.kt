@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 
 @Composable
 fun PantallaColeccion(navController: NavController) {
@@ -36,7 +37,15 @@ fun PantallaColeccion(navController: NavController) {
     val porcentaje =
         desbloqueadas.toFloat() /
                 totalEspadas.toFloat()
+    LaunchedEffect(Unit) {
 
+        UserRepository.obtenerEspadasGacha {
+
+            GachaState.listaEspadasOnline.clear()
+
+            GachaState.listaEspadasOnline.addAll(it)
+        }
+    }
     /*
     ----------------------------------------
     FONDO
@@ -119,7 +128,7 @@ fun PantallaColeccion(navController: NavController) {
 
                         Text(
                             text =
-                                "Desbloqueadas: $desbloqueadas / $totalEspadas",
+                                "Desbloqueadas: $desbloqueadas / $totalEspadas " ,
 
                             color = Color.White,
 
@@ -164,7 +173,7 @@ fun PantallaColeccion(navController: NavController) {
             ----------------------------------------
             */
 
-            items(EspadasData.lista) { espada ->
+            items(GachaState.listaEspadasOnline) { espada ->
 
                 val desbloqueada =
                     GachaState
@@ -174,26 +183,26 @@ fun PantallaColeccion(navController: NavController) {
                 val colorFondo =
                     when (espada.rareza) {
 
-                        Rareza.COMUN ->
+                        "COMUN" ->
                             Color.Gray
 
-                        Rareza.RARA ->
+                        "RARA" ->
                             Color(0xFF38BDF8)
 
-                        Rareza.EPICA ->
+                        "EPICA" ->
                             Color(0xFFC084FC)
 
-                        Rareza.LEGENDARIA ->
+                        else ->
                             Color(0xFFFACC15)
                     }
 
                 val estrellas =
                     when (espada.rareza) {
 
-                        Rareza.COMUN -> 1
-                        Rareza.RARA -> 2
-                        Rareza.EPICA -> 3
-                        Rareza.LEGENDARIA -> 4
+                        "COMUN" -> 1
+                        "RARA" -> 2
+                        "EPICA" -> 3
+                        else -> 4
                     }
 
                 AnimatedVisibility(
@@ -273,34 +282,28 @@ fun PantallaColeccion(navController: NavController) {
                                     )
                             ) {
 
-                                Image(
-                                    painter =
-                                        painterResource(
 
-                                            if (desbloqueada)
-                                                espada.imagen
+                                        AsyncImage(
 
-                                            else
-                                                R.drawable.ic_launcher_foreground
-                                        ),
+                                            model =
+                                                if (desbloqueada)
+                                                    espada.imagen_url
+                                                else
+                                                    null,
 
-                                    contentDescription =
-                                        espada.nombre,
+                                            contentDescription = espada.nombre,
 
-                                    contentScale =
-                                        ContentScale.Fit,
+                                            modifier = Modifier
+                                                .size(110.dp)
+                                                .padding(10.dp)
 
-                                    modifier = Modifier
-                                        .size(110.dp)
-                                        .padding(10.dp)
-
-                                        .alpha(
-                                            if (desbloqueada)
-                                                1f
-                                            else
-                                                0.35f
+                                                .alpha(
+                                                    if (desbloqueada)
+                                                        1f
+                                                    else
+                                                        0.35f
+                                                )
                                         )
-                                )
                             }
 
                             Spacer(
@@ -370,7 +373,7 @@ fun PantallaColeccion(navController: NavController) {
 
                                     Text(
                                         text =
-                                            espada.rareza.name,
+                                            espada.rareza,
 
                                         color =
                                             colorFondo,

@@ -296,4 +296,28 @@ object UserRepository {
                 }
             })
     }
+    fun obtenerEspadasGacha(
+        onResult:(List<EspadaOnline>) -> Unit
+    ){
+
+        RetrofitClient.api.obtenerEspadasGacha()
+            .enqueue(object : Callback<List<EspadaOnline>> {
+
+                override fun onResponse(
+                    call: Call<List<EspadaOnline>>,
+                    response: Response<List<EspadaOnline>>
+                ) {
+
+                    onResult(response.body() ?: emptyList())
+                }
+
+                override fun onFailure(
+                    call: Call<List<EspadaOnline>>,
+                    t: Throwable
+                ) {
+
+                    onResult(emptyList())
+                }
+            })
+    }
 }

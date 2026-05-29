@@ -22,18 +22,35 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 
 @Composable
 fun PantallaGacha(navController: NavController) {
 
     var resultados by remember {
-        mutableStateOf<List<Espada>>(emptyList())
+        mutableStateOf<List<EspadaOnline>>(emptyList())
     }
 
     var animarCartas by remember {
         mutableStateOf(false)
     }
+    LaunchedEffect(Unit) {
 
+        UserRepository.obtenerEspadasGacha {
+
+            GachaState.listaEspadasOnline.clear()
+
+            GachaState.listaEspadasOnline.addAll(it)
+
+            println("ESPADAS CARGADAS: ${it.size}")
+
+            it.forEach { espada ->
+
+                println("ESPADA: ${espada.nombre}")
+                println("IMAGEN: ${espada.imagen_url}")
+            }
+        }
+    }
     /*
     ----------------------------------------
     ANIMACIÓN BOTONES
@@ -175,20 +192,23 @@ fun PantallaGacha(navController: NavController) {
 
                         val espada = tirarGacha()
 
-                        resultados = listOf(espada)
+                        if (espada != null) {
 
-                        GachaState.añadirEspada(
-                            espada.id
-                        )
+                            resultados = listOf(espada)
+
+                            GachaState.añadirEspada(
+                                espada.id
+                            )
+
+                            UserRepository.guardarEspada(
+                                UserSession.userId,
+                                espada.id
+                            )
+                        }
 
                         UserRepository.guardarMonedas(
                             UserSession.userId,
                             GachaState.monedas.value
-                        )
-
-                        UserRepository.guardarEspada(
-                            UserSession.userId,
-                            espada.id
                         )
 
                         animarCartas = true
@@ -240,22 +260,25 @@ fun PantallaGacha(navController: NavController) {
                         GachaState.monedas.value -= 100
 
                         val nuevasEspadas =
-                            mutableListOf<Espada>()
+                            mutableListOf<EspadaOnline>()
 
                         repeat(10) {
 
                             val espada = tirarGacha()
 
-                            nuevasEspadas.add(espada)
+                            if (espada != null) {
 
-                            GachaState.añadirEspada(
-                                espada.id
-                            )
+                                nuevasEspadas.add(espada)
 
-                            UserRepository.guardarEspada(
-                                UserSession.userId,
-                                espada.id
-                            )
+                                GachaState.añadirEspada(
+                                    espada.id
+                                )
+
+                                UserRepository.guardarEspada(
+                                    UserSession.userId,
+                                    espada.id
+                                )
+                            }
                         }
 
                         resultados = nuevasEspadas
@@ -322,26 +345,26 @@ fun PantallaGacha(navController: NavController) {
                                 val colorFondo =
                                     when (espada.rareza) {
 
-                                        Rareza.COMUN ->
+                                        "COMUN" ->
                                             Color.Gray
 
-                                        Rareza.RARA ->
+                                        "RARA" ->
                                             Color(0xFF38BDF8)
 
-                                        Rareza.EPICA ->
+                                        "EPICA" ->
                                             Color(0xFFC084FC)
 
-                                        Rareza.LEGENDARIA ->
+                                        else ->
                                             Color(0xFFFACC15)
                                     }
 
                                 val estrellas =
                                     when (espada.rareza) {
 
-                                        Rareza.COMUN -> 1
-                                        Rareza.RARA -> 2
-                                        Rareza.EPICA -> 3
-                                        Rareza.LEGENDARIA -> 4
+                                        "COMUN" -> 1
+                                        "RARA" -> 2
+                                        "EPICA" -> 3
+                                        else -> 4
                                     }
 
                                 Card(
@@ -374,7 +397,7 @@ fun PantallaGacha(navController: NavController) {
 
                                         Text(
                                             text =
-                                                espada.rareza.name,
+                                                espada.rareza,
 
                                             fontWeight =
                                                 FontWeight.Bold,
@@ -386,17 +409,13 @@ fun PantallaGacha(navController: NavController) {
                                             Modifier.height(10.dp)
                                         )
 
-                                        Image(
-                                            painter =
-                                                painterResource(
-                                                    espada.imagen
-                                                ),
+                                        AsyncImage(
 
-                                            contentDescription =
-                                                espada.nombre,
+                                            model = espada.imagen_url,
 
-                                            modifier = Modifier
-                                                .size(120.dp)
+                                            contentDescription = espada.nombre,
+
+                                            modifier = Modifier.size(120.dp)
                                         )
 
                                         Spacer(

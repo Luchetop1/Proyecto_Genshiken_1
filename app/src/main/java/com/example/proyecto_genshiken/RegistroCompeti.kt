@@ -135,7 +135,7 @@ fun RegistroCompeti(navController: NavHostController) {
 
             /*
             --------------------------------------------------
-            CARD PRINCIPAL
+            CARD PRINCIPAL DONDE ESTAN LOS CAMPOS
             --------------------------------------------------
             */
 
@@ -167,11 +167,7 @@ fun RegistroCompeti(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(25.dp))
 
-                    /*
-                    --------------------------------------------------
-                    USERNAME
-                    --------------------------------------------------
-                    */
+
 
                     OutlinedTextField(
                         value = usuario,
@@ -188,11 +184,7 @@ fun RegistroCompeti(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(18.dp))
 
-                    /*
-                    --------------------------------------------------
-                    EMAIL
-                    --------------------------------------------------
-                    */
+
 
                     OutlinedTextField(
                         value = email,
@@ -209,11 +201,7 @@ fun RegistroCompeti(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(18.dp))
 
-                    /*
-                    --------------------------------------------------
-                    PASSWORD
-                    --------------------------------------------------
-                    */
+
 
                     OutlinedTextField(
                         value = contraseña,
@@ -232,11 +220,7 @@ fun RegistroCompeti(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(25.dp))
 
-                    /*
-                    --------------------------------------------------
-                    BOTON REGISTRO
-                    --------------------------------------------------
-                    */
+
 
                     Button(
                         onClick = {
@@ -322,11 +306,7 @@ fun RegistroCompeti(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    /*
-                    --------------------------------------------------
-                    MENSAJE ERROR / EXITO
-                    --------------------------------------------------
-                    */
+
 
                     if (mensajeError.isNotEmpty()) {
 
@@ -339,11 +319,7 @@ fun RegistroCompeti(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    /*
-                    --------------------------------------------------
-                    LOGIN
-                    --------------------------------------------------
-                    */
+
 
                     OutlinedButton(
                         onClick = {
@@ -376,11 +352,7 @@ fun RegistroCompeti(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            /*
-            --------------------------------------------------
-            TEXTO INFERIOR
-            --------------------------------------------------
-            */
+
 
             Text(
                 text = "Modo competitivo GenshikenC.S.",

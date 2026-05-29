@@ -29,26 +29,23 @@ object EspadasData {
         Espada(8, "Sandai Kitetsu ", Rareza.EPICA, "Una de las espadas de Ronronoa Zoro,  es una de las Wazamono y, como el resto de espadas Kitetsu, está maldita. Fue forjada por Kozuki Sukiyaki. Zoro probó su suerte contra la maldición y finalmente acabó superando la prueba. Permitiendo a Zoro quedarse con la espada", R.drawable.zoroespada),
         Espada(9, "Espada Atlante", Rareza.RARA, "Es una espada pesada, de gran tamaño, forjada en la mítica Atlantis. Se dice que la Espada Atlante otorga fuerza y resistencia sobrehumanas a su portado. Es por esto que Conan la toma como su compañera de aventuras", R.drawable.conan),
         Espada(10, "Katana Hattori Hanzo",  Rareza.COMUN, "La primera katana creada por Hattori Hanzo en mas de un cuarto de siglo, esta katana fue creada para 'La novia' con la intencion de asesinar a Bill, quien, habia ofendido a su maestro por sus acciones deshonrosas ", R.drawable.kill_bill),
-
+        Espada(11,"Hinuyasa", Rareza.RARA,"FSDFDSFDSFDSFDSFD\n" +
+                "F\n" +
+                "DS\n" +
+                "F\n" +
+                "DSF\n" +
+                "DS\n" +
+                "FDS\n" +
+                "F\n" +
+                "DS\n" +
+                "F\n" +
+                "DSF\n" +
+                "HTTP://WWW.GENSHIKENCS.ES",R.drawable.mihawk)
 
     )
 }
 
-fun tirarGacha(): Espada {
 
-    val random = (1..100).random()
-
-    val rareza = when {
-        random <= 60 -> Rareza.COMUN
-        random <= 90 -> Rareza.RARA
-        random <= 99 -> Rareza.EPICA
-        else -> Rareza.LEGENDARIA
-    }
-
-    val posibles = EspadasData.lista.filter { it.rareza == rareza }
-
-    return posibles.random()
-}
 
 
 

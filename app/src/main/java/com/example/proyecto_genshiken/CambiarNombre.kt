@@ -44,11 +44,7 @@ fun CambiarNombre(navController: NavHostController) {
         mutableStateOf(false)
     }
 
-    /*
-    ----------------------------------------
-    FONDO
-    ----------------------------------------
-    */
+
 
     Box(
         modifier = Modifier
@@ -80,11 +76,7 @@ fun CambiarNombre(navController: NavHostController) {
                 Modifier.height(40.dp)
             )
 
-            /*
-            ----------------------------------------
-            TÍTULO
-            ----------------------------------------
-            */
+
 
             Text(
                 text = " CAMBIAR NOMBRE ",
@@ -103,7 +95,7 @@ fun CambiarNombre(navController: NavHostController) {
 
             /*
             ----------------------------------------
-            FORMULARIO
+            El formulario con los campos que hay que rellenar
             ----------------------------------------
             */
 
@@ -229,7 +221,7 @@ fun CambiarNombre(navController: NavHostController) {
 
                     /*
                     ----------------------------------------
-                    BOTÓN CAMBIAR
+                    El boton para confirmar que se cambia el nombre
                     ----------------------------------------
                     */
 
@@ -333,7 +325,7 @@ fun CambiarNombre(navController: NavHostController) {
 
             /*
             ----------------------------------------
-            MENSAJE
+            El mensaje de error o de confirmacion
             ----------------------------------------
             */
 

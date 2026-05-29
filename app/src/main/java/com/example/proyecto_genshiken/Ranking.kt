@@ -102,7 +102,7 @@ fun Ranking(navController: NavController) {
             Spacer(Modifier.height(20.dp))
 
             Text(
-                text = "🏆 RANKING 🏆",
+                text = "RANKING ",
                 fontSize = 34.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = Color.White
@@ -110,11 +110,7 @@ fun Ranking(navController: NavController) {
 
             Spacer(Modifier.height(24.dp))
 
-            /*
-            -----------------------------------------
-            FILTROS
-            -----------------------------------------
-            */
+
 
             Row {
 
@@ -225,11 +221,7 @@ fun Ranking(navController: NavController) {
 
             Spacer(Modifier.height(26.dp))
 
-            /*
-            -----------------------------------------
-            TOP 10
-            -----------------------------------------
-            */
+
 
             LazyColumn(
                 modifier = Modifier.weight(1f),
@@ -333,12 +325,12 @@ fun Ranking(navController: NavController) {
 
             /*
             -----------------------------------------
-            TU POSICIÓN
+            La Posicion del jugador
             -----------------------------------------
             */
 
             Text(
-                text = "✨ Tu posición ✨",
+                text = " Tu posición ",
 
                 fontSize = 24.sp,
 
@@ -415,7 +407,7 @@ fun Ranking(navController: NavController) {
 
             /*
             -----------------------------------------
-            BOTÓN
+            El boton para regresar al Inicio
             -----------------------------------------
             */
 

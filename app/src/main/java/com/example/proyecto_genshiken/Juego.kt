@@ -48,10 +48,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
+import android.media.MediaPlayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
+import androidx.compose.runtime.DisposableEffect
 
 @Composable
 fun Juego(navController: NavHostController) {
@@ -96,6 +98,8 @@ fun Juego(navController: NavHostController) {
     var finContenido by remember {
         mutableStateOf(false)
     }
+    val context = LocalContext.current
+
 
     /*
     --------------------------------------------------
@@ -177,7 +181,7 @@ fun Juego(navController: NavHostController) {
 
     /*
     --------------------------------------------------
-    CARGANDO
+    Cargar las preguntas, ya que lleva un pequeño tiempo de conexion
     --------------------------------------------------
     */
     if (cargando) {
@@ -221,7 +225,7 @@ fun Juego(navController: NavHostController) {
 
     /*
 --------------------------------------------------
-JUEGO COMPLETADO / SIN MÁS PREGUNTAS
+JUEGO COMPLETADO O SIN MÁS PREGUNTAS
 --------------------------------------------------
 */
     if (finContenido) {
@@ -355,7 +359,7 @@ JUEGO COMPLETADO / SIN MÁS PREGUNTAS
 
             /*
             --------------------------------------------------
-            HEADER
+            HEADER PARA MOSTRAR TIEMPO, PUNTUACION Y NIVEL
             --------------------------------------------------
             */
             Header(
@@ -370,7 +374,7 @@ JUEGO COMPLETADO / SIN MÁS PREGUNTAS
 
             /*
             --------------------------------------------------
-            TARJETA PRINCIPAL
+            TARJETA PRINCIPAL DONDE IRÁN LOS ELEMENTOS CLICKABLES
             --------------------------------------------------
             */
             Card(
@@ -496,6 +500,11 @@ JUEGO COMPLETADO / SIN MÁS PREGUNTAS
                                         pregunta.opcionCorrecta
                                     ) {
 
+                                        MediaPlayer.create(
+                                            context,
+                                            R.raw.katanasonido
+                                        ).start()
+
                                         puntuacion += 1000
 
                                         respuestaCorrecta++
@@ -506,7 +515,10 @@ JUEGO COMPLETADO / SIN MÁS PREGUNTAS
                                             EstadoRespuesta.CORRECT
 
                                     } else {
-
+                                        MediaPlayer.create(
+                                            context,
+                                            R.raw.error
+                                        ).start()
                                         puntuacion -= 200
 
                                         estadoRespuesta[
@@ -525,7 +537,7 @@ JUEGO COMPLETADO / SIN MÁS PREGUNTAS
 
             /*
             --------------------------------------------------
-            PROGRESO
+            PROGRESO DEL JUEGO
             --------------------------------------------------
             */
             QuestionProgress(
@@ -991,5 +1003,7 @@ fun QuestionProgress(
                 )
             }
         }
+
     }
+
 }

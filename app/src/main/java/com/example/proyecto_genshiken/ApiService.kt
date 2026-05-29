@@ -86,4 +86,7 @@ interface ApiService {
     fun obtenerPreguntas(
         @Query("nivel_id") nivelId:Int
     ): Call<List<Preguntas>>
+    @GET("obtener_espadas_gacha.php")
+    fun obtenerEspadasGacha():
+            Call<List<EspadaOnline>>
 }

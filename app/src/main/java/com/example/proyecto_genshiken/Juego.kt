@@ -49,14 +49,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import android.media.MediaPlayer
-import androidx.compose.ui.platform.LocalContext
+
 import androidx.navigation.NavHostController
 import coil.compose.AsyncImage
 import kotlinx.coroutines.delay
 import androidx.compose.runtime.DisposableEffect
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.content.Context
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun Juego(navController: NavHostController) {
+
+
 
     var nivel by remember { mutableStateOf(1) }
 
@@ -99,6 +106,21 @@ fun Juego(navController: NavHostController) {
         mutableStateOf(false)
     }
     val context = LocalContext.current
+    /*
+    --------------------------------------------------
+    Música del juego
+    --------------------------------------------------
+
+    Al entrar en la pantalla de juego se cambia a la
+    música más movida. Al salir del juego, se para.
+    */
+    DisposableEffect(Unit) {
+        MusicManager.reproducirJuego(context)
+
+        onDispose {
+            MusicManager.pararMusica()
+        }
+    }
 
 
     /*
@@ -519,8 +541,27 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
                                             context,
                                             R.raw.error
                                         ).start()
-                                        puntuacion -= 200
 
+                                        val vibrator =
+                                            context.getSystemService(
+                                                Context.VIBRATOR_SERVICE
+                                            ) as Vibrator
+
+                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                            vibrator.vibrate(
+                                                VibrationEffect.createOneShot(
+                                                    300, // duración en ms
+                                                    VibrationEffect.DEFAULT_AMPLITUDE
+                                                )
+                                            )
+
+                                        } else {
+
+                                            @Suppress("DEPRECATION")
+                                            vibrator.vibrate(300)
+                                        }
+
+                                        puntuacion -= 200
                                         estadoRespuesta[
                                             numeroPregunta
                                         ] =
@@ -567,129 +608,132 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
                         val puntuacionFinal = puntuacionBase + timeBonus
 
                         // 3. guardamos score REAL (inmutable)
-                        UserRepository.saveScore(
-                            UserSession.userId,
-                            puntuacionFinal,
-                            tiempoTotal
-                        ) { guardado ->
+                        if (GameMode.esCompetitivo) {
 
-                            if (guardado) {
+                            UserRepository.saveScore(
+                                UserSession.userId,
+                                puntuacionFinal,
+                                tiempoTotal
+                            ) { guardado ->
 
-                                GameSession.lastScore = puntuacionFinal
-                                GameSession.lastTime = tiempoTotal
+                                if (guardado) {
 
-                                // monedas
-                                val monedasGanadas = puntuacionFinal / 100
-
-                                GachaState.monedas.value += monedasGanadas
-
-                                UserRepository.guardarMonedas(
-                                    UserSession.userId,
-                                    GachaState.monedas.value
-                                )
-
-                                // lógica niveles
-                                if (respuestaCorrecta >= 5) {
-
-                                    val siguienteNivel = nivel + 1
-
-                                    UserRepository.obtenerPreguntas(
-                                        siguienteNivel
-                                    ) { lista ->
-
-                                        if (lista.isNullOrEmpty()) {
-
-                                            navController.navigate("Ranking") {
-                                                popUpTo("Juego") {
-                                                    inclusive = true
-                                                }
-                                            }
-
-                                        } else {
-
-                                            nivel = siguienteNivel
-                                            preguntas = lista
-                                            numeroPregunta = 0
-                                            respuestaCorrecta = 0
-                                            respuestaElegida = null
-
-                                            estadoRespuesta.clear()
-
-                                            repeat(lista.size) {
-
-                                                estadoRespuesta.add(
-                                                    EstadoRespuesta.PENDING
-                                                )
-                                            }
-
-                                            estadoRespuesta[0] =
-                                                EstadoRespuesta.CURRENT
-
-                                            tiempoNivel = 0
-                                        }
-                                    }
-
-                                } else {
-
-                                    navController.navigate("Ranking") {
-
-                                        popUpTo("Juego") {
-                                            inclusive = true
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // 4. monedas basadas en score final
-                        val monedasGanadas = puntuacionFinal / 100
-
-                        GachaState.monedas.value += monedasGanadas
-
-                        UserRepository.guardarMonedas(
-                            UserSession.userId,
-                            GachaState.monedas.value
-                        )
-
-                        // 5. lógica de nivel
-                        if (respuestaCorrecta >= 5) {
-
-                            val siguienteNivel = nivel + 1
-
-                            UserRepository.obtenerPreguntas(siguienteNivel) { lista ->
-
-                                if (lista.isNullOrEmpty()) {
                                     GameSession.lastScore = puntuacionFinal
                                     GameSession.lastTime = tiempoTotal
-                                    navController.navigate("Ranking") {
-                                        popUpTo("Juego") { inclusive = true }
+
+                                    val monedasGanadas = puntuacionFinal / 100
+
+                                    GachaState.monedas.value += monedasGanadas
+
+                                    UserRepository.guardarMonedas(
+                                        UserSession.userId,
+                                        GachaState.monedas.value
+                                    )
+
+                                    if (respuestaCorrecta >= 5) {
+
+                                        val siguienteNivel = nivel + 1
+
+                                        UserRepository.obtenerPreguntas(
+                                            siguienteNivel
+                                        ) { lista ->
+
+                                            if (lista.isNullOrEmpty()) {
+
+                                                navController.navigate("Ranking") {
+                                                    popUpTo("Juego") {
+                                                        inclusive = true
+                                                    }
+                                                }
+
+                                            } else {
+
+                                                nivel = siguienteNivel
+                                                preguntas = lista
+                                                numeroPregunta = 0
+                                                respuestaCorrecta = 0
+                                                respuestaElegida = null
+
+                                                estadoRespuesta.clear()
+
+                                                repeat(lista.size) {
+                                                    estadoRespuesta.add(
+                                                        EstadoRespuesta.PENDING
+                                                    )
+                                                }
+
+                                                estadoRespuesta[0] =
+                                                    EstadoRespuesta.CURRENT
+
+                                                tiempoNivel = 0
+                                            }
+                                        }
+
+                                    } else {
+
+                                        navController.navigate("Ranking") {
+                                            popUpTo("Juego") {
+                                                inclusive = true
+                                            }
+                                        }
                                     }
-
-                                } else {
-
-                                    nivel = siguienteNivel
-                                    preguntas = lista
-                                    numeroPregunta = 0
-                                    respuestaCorrecta = 0
-                                    respuestaElegida = null
-
-                                    estadoRespuesta.clear()
-                                    repeat(lista.size) {
-                                        estadoRespuesta.add(EstadoRespuesta.PENDING)
-                                    }
-                                    estadoRespuesta[0] = EstadoRespuesta.CURRENT
-
-                                    tiempoNivel = 0
                                 }
                             }
 
                         } else {
-                            GameSession.lastScore = puntuacionFinal
-                            GameSession.lastTime = tiempoTotal
-                            navController.navigate("Ranking") {
-                                popUpTo("Juego") { inclusive = true }
+
+                            // MODO CASUAL
+
+                            if (respuestaCorrecta >= 5) {
+
+                                val siguienteNivel = nivel + 1
+
+                                UserRepository.obtenerPreguntas(
+                                    siguienteNivel
+                                ) { lista ->
+
+                                    if (lista.isNullOrEmpty()) {
+
+                                        navController.navigate("inicio") {
+                                            popUpTo("Juego") {
+                                                inclusive = true
+                                            }
+                                        }
+
+                                    } else {
+
+                                        nivel = siguienteNivel
+                                        preguntas = lista
+                                        numeroPregunta = 0
+                                        respuestaCorrecta = 0
+                                        respuestaElegida = null
+
+                                        estadoRespuesta.clear()
+
+                                        repeat(lista.size) {
+                                            estadoRespuesta.add(
+                                                EstadoRespuesta.PENDING
+                                            )
+                                        }
+
+                                        estadoRespuesta[0] =
+                                            EstadoRespuesta.CURRENT
+
+                                        tiempoNivel = 0
+                                    }
+                                }
+
+                            } else {
+
+                                navController.navigate("inicio") {
+                                    popUpTo("Juego") {
+                                        inclusive = true
+                                    }
+                                }
                             }
                         }
+
+
                     },
 
                     modifier = Modifier

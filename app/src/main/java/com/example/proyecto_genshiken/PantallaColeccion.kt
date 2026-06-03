@@ -29,14 +29,18 @@ import coil.compose.AsyncImage
 fun PantallaColeccion(navController: NavController) {
 
     val totalEspadas =
-        EspadasData.lista.size
+        GachaState.listaEspadasOnline.size
+
 
     val desbloqueadas =
         GachaState.espadasDesbloqueadas.size
 
     val porcentaje =
-        desbloqueadas.toFloat() /
-                totalEspadas.toFloat()
+        if (totalEspadas > 0)
+            desbloqueadas.toFloat() / totalEspadas.toFloat()
+        else
+            0f
+
     LaunchedEffect(Unit) {
 
         UserRepository.obtenerEspadasGacha {

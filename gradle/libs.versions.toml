@@ -21,6 +21,7 @@ foundationLayout = "1.10.4"
 remoteCreationCore = "1.0.0-alpha06"
 material3Common = "1.0.0-alpha01"
 uiGraphicsVersion = "1.11.0"
+runtimeVersion = "1.11.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -50,6 +51,7 @@ androidx-compose-foundation-layout = { group = "androidx.compose.foundation", na
 androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
 androidx-compose-material3-common = { group = "androidx.compose.material3", name = "material3-common", version.ref = "material3Common" }
 ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics", version.ref = "uiGraphicsVersion" }
+androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtimeVersion" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

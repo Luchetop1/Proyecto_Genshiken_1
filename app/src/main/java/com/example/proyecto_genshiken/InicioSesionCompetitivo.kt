@@ -73,17 +73,10 @@ fun InicioCompetitivo(navController: NavHostController) {
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
-
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
             Spacer(modifier = Modifier.height(20.dp))
-
-            /*
-            --------------------------------------------------
-            VOLVER
-            --------------------------------------------------
-            */
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -102,12 +95,6 @@ fun InicioCompetitivo(navController: NavHostController) {
             }
 
             Spacer(modifier = Modifier.height(30.dp))
-
-            /*
-            --------------------------------------------------
-            TITULO
-            --------------------------------------------------
-            */
 
             Text(
                 text = "Modo Competitivo",
@@ -129,12 +116,6 @@ fun InicioCompetitivo(navController: NavHostController) {
 
             Spacer(modifier = Modifier.height(36.dp))
 
-            /*
-            --------------------------------------------------
-            CARD LOGIN
-            --------------------------------------------------
-            */
-
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(24.dp),
@@ -150,7 +131,6 @@ fun InicioCompetitivo(navController: NavHostController) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(24.dp),
-
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
@@ -162,12 +142,6 @@ fun InicioCompetitivo(navController: NavHostController) {
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
-
-                    /*
-                    --------------------------------------------------
-                    EMAIL
-                    --------------------------------------------------
-                    */
 
                     OutlinedTextField(
                         value = email,
@@ -184,12 +158,6 @@ fun InicioCompetitivo(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(18.dp))
 
-                    /*
-                    --------------------------------------------------
-                    PASSWORD
-                    --------------------------------------------------
-                    */
-
                     OutlinedTextField(
                         value = contraseña,
                         onValueChange = {
@@ -199,19 +167,12 @@ fun InicioCompetitivo(navController: NavHostController) {
                             Text("Contraseña")
                         },
                         singleLine = true,
-                        visualTransformation =
-                            PasswordVisualTransformation(),
+                        visualTransformation = PasswordVisualTransformation(),
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(16.dp)
                     )
 
                     Spacer(modifier = Modifier.height(26.dp))
-
-                    /*
-                    --------------------------------------------------
-                    BOTON LOGIN
-                    --------------------------------------------------
-                    */
 
                     Button(
                         onClick = {
@@ -225,6 +186,19 @@ fun InicioCompetitivo(navController: NavHostController) {
 
                                     UserSession.userId = id
                                     UserSession.userName = nombre
+
+                                    /*
+                                    --------------------------------------------------
+                                    Registrar instalación
+                                    --------------------------------------------------
+
+                                    Solo se registra cuando el usuario inicia sesión
+                                    correctamente en modo competitivo.
+                                    */
+                                    UserRepository.registrarDescarga(
+                                        usuarioId = id,
+                                        nombreUsuario = nombre
+                                    )
 
                                     UserRepository.obtenerMonedas(id) { monedas ->
 
@@ -252,13 +226,10 @@ fun InicioCompetitivo(navController: NavHostController) {
                                 }
                             }
                         },
-
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(55.dp),
-
                         shape = RoundedCornerShape(16.dp),
-
                         colors = ButtonDefaults.buttonColors(
                             containerColor = Color(0xFFFACC15),
                             contentColor = Color(0xFF111827)
@@ -274,12 +245,6 @@ fun InicioCompetitivo(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(14.dp))
 
-                    /*
-                    --------------------------------------------------
-                    MENSAJE ERROR
-                    --------------------------------------------------
-                    */
-
                     if (mensajeError.isNotEmpty()) {
 
                         Text(
@@ -291,28 +256,18 @@ fun InicioCompetitivo(navController: NavHostController) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    /*
-                    --------------------------------------------------
-                    REGISTRO
-                    --------------------------------------------------
-                    */
-
                     OutlinedButton(
                         onClick = {
                             navController.navigate(
                                 "RegistroCompeti"
                             )
                         },
-
                         modifier = Modifier.fillMaxWidth(),
-
                         shape = RoundedCornerShape(16.dp),
-
                         border = BorderStroke(
                             1.dp,
                             Color(0xFF1E3A8A)
                         ),
-
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = Color(0xFF1E3A8A)
                         )
@@ -325,12 +280,6 @@ fun InicioCompetitivo(navController: NavHostController) {
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
-
-                    /*
-                    --------------------------------------------------
-                    REENVIAR VERIFICACION
-                    --------------------------------------------------
-                    */
 
                     Text(
                         text = "Reenviar correo de verificación",
@@ -358,12 +307,6 @@ fun InicioCompetitivo(navController: NavHostController) {
             }
 
             Spacer(modifier = Modifier.height(30.dp))
-
-            /*
-            --------------------------------------------------
-            FOOTER
-            --------------------------------------------------
-            */
 
             Text(
                 text = "Modo Competitivo GenshikenC.S.",

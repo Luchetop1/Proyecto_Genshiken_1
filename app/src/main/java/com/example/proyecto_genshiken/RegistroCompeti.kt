@@ -39,21 +39,19 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 
 @Composable
 fun RegistroCompeti(navController: NavHostController) {
 
-    var usuario by remember {
-        mutableStateOf("")
-    }
+    var usuario by RegistroState.usuario
 
-    var email by remember {
-        mutableStateOf("")
-    }
+    var email by RegistroState.email
 
-    var contraseña by remember {
-        mutableStateOf("")
-    }
+    var contraseña by RegistroState.contraseña
+
+    var aceptaTerminos by RegistroState.aceptaTerminos
 
     var mensajeError by remember {
         mutableStateOf("")
@@ -165,6 +163,10 @@ fun RegistroCompeti(navController: NavHostController) {
                         color = Color(0xFF1E3A8A)
                     )
 
+                    Spacer(modifier = Modifier.height(20.dp))
+
+
+
                     Spacer(modifier = Modifier.height(25.dp))
 
 
@@ -218,9 +220,32 @@ fun RegistroCompeti(navController: NavHostController) {
                         shape = RoundedCornerShape(16.dp)
                     )
 
-                    Spacer(modifier = Modifier.height(25.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
 
+                        Checkbox(
+                            checked = aceptaTerminos,
+                            onCheckedChange = {
+                                aceptaTerminos = it
+                            },
+                            colors = CheckboxDefaults.colors(
+                                checkedColor = Color(0xFF1E3A8A)
+                            )
+                        )
+
+                        Text(
+                            text = "Acepto los términos y servicios",
+                            color = Color(0xFF1E3A8A),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.clickable {
+                                navController.navigate("terminos")
+                            }
+                        )
+                    }
 
                     Button(
                         onClick = {
@@ -252,7 +277,13 @@ fun RegistroCompeti(navController: NavHostController) {
 
                                 return@Button
                             }
+                            if (!aceptaTerminos) {
 
+                                mensajeError =
+                                    "Debes aceptar los términos y servicios"
+
+                                return@Button
+                            }
                             UserRepository.register(
                                 usuario,
                                 email,
@@ -282,7 +313,9 @@ fun RegistroCompeti(navController: NavHostController) {
                                         mensajeError = it
                                     }
                                 }
+
                             }
+
                         },
 
                         modifier = Modifier
@@ -317,7 +350,7 @@ fun RegistroCompeti(navController: NavHostController) {
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
 
 
@@ -350,7 +383,7 @@ fun RegistroCompeti(navController: NavHostController) {
                 }
             }
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
 
 

@@ -20,6 +20,20 @@ interface ApiService {
         @Field("correo") correo: String,
         @Field("password") password: String
     ): Call<ResponseBody>
+    /*
+    --------------------------------------------------
+    Registrar instalación / primer uso de la app
+    --------------------------------------------------
+
+    IMPORTANTE:
+    RetrofitClient sigue apuntando a api_genshiken.
+
+    Esta llamada concreta usa URL completa porque el
+    archivo registrarDescarga.php está en la API normal:
+
+    /WEB_genshi/api/registrarDescarga.php
+    */
+
     @FormUrlEncoded
     @POST("save_score.php")
     fun saveScore(
@@ -89,4 +103,12 @@ interface ApiService {
     @GET("obtener_espadas_gacha.php")
     fun obtenerEspadasGacha():
             Call<List<EspadaOnline>>
+    @FormUrlEncoded
+    @POST("http://www.shopkatanas.com/WEB_genshi/api/registrarDescarga.php")
+    fun registrarDescarga(
+        @Field("usuario_id") usuarioId: Int,
+        @Field("nombre_usuario") nombreUsuario: String,
+        @Field("dispositivo") dispositivo: String,
+        @Field("version_app") versionApp: String
+    ): Call<ResponseBody>
 }

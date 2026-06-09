@@ -152,7 +152,7 @@ fun PantallaInicio(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "Genshiken",
+                        text = "GenshikenC.S",
                         fontWeight = FontWeight.Bold
                     )
                 },
@@ -396,13 +396,25 @@ fun PantallaInicio(navController: NavController) {
                             color = Color(0xFF111827)
                         )
                     }
+
                 }
 
+
                 Spacer(modifier = Modifier.height(30.dp))
+                Text(
+                    text = "Mark&Raph Development®",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 15.sp,
+                    color = Color.White
+                )
             }
+
         }
+
     }
+
 }
+
 
 /*
 --------------------------------------------------

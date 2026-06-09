@@ -70,8 +70,11 @@ fun Juego(navController: NavHostController) {
     var numeroPregunta by remember {
         mutableStateOf(0)
     }
+    var puntuacionTotal by remember {
+        mutableStateOf(0)
+    }
 
-    var puntuacion by remember {
+    var puntuacionNivel by remember {
         mutableStateOf(0)
     }
 
@@ -105,7 +108,92 @@ fun Juego(navController: NavHostController) {
     var finContenido by remember {
         mutableStateOf(false)
     }
+    var mostrandoTransicion by remember {
+        mutableStateOf(false)
+    }
+
+    var mensajeTransicion by remember {
+        mutableStateOf("")
+    }
     val context = LocalContext.current
+
+    fun finalizarNivel() {
+
+        val puntuacionNivelFinal =
+            puntuacionNivel +
+                    ((600 - tiempoNivel).coerceAtLeast(0)) * 10
+
+        puntuacionTotal += puntuacionNivelFinal
+
+        mostrandoTransicion = true
+
+        if (respuestaCorrecta >= 5) {
+
+            val siguienteNivel = nivel + 1
+
+            UserRepository.obtenerPreguntas(
+                siguienteNivel
+            ) { lista ->
+
+                if (lista.isNullOrEmpty()) {
+
+                    mensajeTransicion =
+                        " Has completado el último nivel disponible.\n\nRedirigiendo al ranking..."
+
+                    GameSession.lastScore = puntuacionTotal
+                    GameSession.lastTime = tiempoTotal
+
+                    UserRepository.saveScore(
+                        UserSession.userId,
+                        puntuacionTotal,
+                        tiempoTotal
+                    ) {}
+
+                    if (GameMode.esCompetitivo) {
+
+                        val monedasGanadas = puntuacionTotal / 1000
+
+                        GachaState.monedas.value += monedasGanadas
+
+                        UserRepository.guardarMonedas(
+                            UserSession.userId,
+                            GachaState.monedas.value
+                        )
+                    }
+                } else {
+
+                    mensajeTransicion =
+                        " Nivel $nivel completado.\n\nPreparando nivel $siguienteNivel..."
+                }
+            }
+
+        } else {
+
+            mensajeTransicion =
+                " No has conseguido suficientes respuestas correctas.\n\nRedirigiendo al ranking..."
+
+            GameSession.lastScore = puntuacionTotal
+            GameSession.lastTime = tiempoTotal
+
+            if (GameMode.esCompetitivo) {
+
+                UserRepository.saveScore(
+                    UserSession.userId,
+                    puntuacionTotal,
+                    tiempoTotal
+                ) { }
+
+                val monedasGanadas = puntuacionTotal / 1000
+
+                GachaState.monedas.value += monedasGanadas
+
+                UserRepository.guardarMonedas(
+                    UserSession.userId,
+                    GachaState.monedas.value
+                )
+            }
+        }
+    }
     /*
     --------------------------------------------------
     Música del juego
@@ -197,6 +285,10 @@ fun Juego(navController: NavHostController) {
 
                 estadoRespuesta[numeroPregunta] =
                     EstadoRespuesta.CURRENT
+
+            } else {
+
+                finalizarNivel()
             }
         }
     }
@@ -345,7 +437,115 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
 
         return
     }
+    if (mostrandoTransicion) {
 
+        LaunchedEffect(Unit) {
+
+            delay(2500)
+
+
+
+            if (respuestaCorrecta >= 5) {
+
+                val siguienteNivel = nivel + 1
+
+                UserRepository.obtenerPreguntas(
+                    siguienteNivel
+                ) { lista ->
+
+                    if (lista.isNullOrEmpty()) {
+
+                        navController.navigate("Ranking") {
+
+                            popUpTo("Juego") {
+                                inclusive = true
+                            }
+                        }
+
+                    } else {
+
+                        nivel = siguienteNivel
+                        preguntas = lista
+                        numeroPregunta = 0
+                        respuestaCorrecta = 0
+                        respuestaElegida = null
+                        puntuacionNivel = 0
+
+                        estadoRespuesta.clear()
+
+                        repeat(lista.size) {
+
+                            estadoRespuesta.add(
+                                EstadoRespuesta.PENDING
+                            )
+                        }
+
+                        estadoRespuesta[0] =
+                            EstadoRespuesta.CURRENT
+
+                        tiempoNivel = 0
+
+                        mostrandoTransicion = false
+                    }
+                }
+
+            } else {
+
+                navController.navigate("Ranking") {
+
+                    popUpTo("Juego") {
+                        inclusive = true
+                    }
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        listOf(
+                            Color(0xFF0F172A),
+                            Color(0xFF1E293B),
+                            Color(0xFF111827)
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+
+            Card(
+                shape = RoundedCornerShape(28.dp)
+            ) {
+
+                Column(
+                    modifier = Modifier.padding(30.dp),
+                    horizontalAlignment =
+                        Alignment.CenterHorizontally
+                ) {
+
+                    Text(
+                        text = mensajeTransicion,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(20.dp)
+                    )
+
+                    LinearProgressIndicator(
+                        modifier =
+                            Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        }
+
+        return
+    }
     /*
     --------------------------------------------------
     CONTENIDO PRINCIPAL
@@ -387,7 +587,7 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
             Header(
                 nivel = nivel,
                 tiempo = tiempoTotal,
-                puntuacion = puntuacion,
+                puntuacion = puntuacionTotal + puntuacionNivel,
                 preguntaActual = numeroPregunta + 1,
                 totalPreguntas = preguntas.size
             )
@@ -527,7 +727,7 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
                                             R.raw.katanasonido
                                         ).start()
 
-                                        puntuacion += 1000
+                                        puntuacionNivel += 1000
 
                                         respuestaCorrecta++
 
@@ -561,7 +761,7 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
                                             vibrator.vibrate(300)
                                         }
 
-                                        puntuacion -= 200
+                                        puntuacionNivel -= 200
                                         estadoRespuesta[
                                             numeroPregunta
                                         ] =
@@ -593,171 +793,7 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
             BOTÓN FINALIZAR
             --------------------------------------------------
             */
-            if (numeroPregunta >= preguntas.size - 1) {
 
-                Button(
-                    onClick = {
-
-                        // 1. congelamos puntuación de preguntas
-                        val puntuacionBase = puntuacion
-
-                        // 2. bonus de tiempo SOLO final
-                        val timeBonus =
-                            ((600 - tiempoNivel).coerceAtLeast(0)) * 10
-
-                        val puntuacionFinal = puntuacionBase + timeBonus
-
-                        // 3. guardamos score REAL (inmutable)
-                        if (GameMode.esCompetitivo) {
-
-                            UserRepository.saveScore(
-                                UserSession.userId,
-                                puntuacionFinal,
-                                tiempoTotal
-                            ) { guardado ->
-
-                                if (guardado) {
-
-                                    GameSession.lastScore = puntuacionFinal
-                                    GameSession.lastTime = tiempoTotal
-
-                                    val monedasGanadas = puntuacionFinal / 100
-
-                                    GachaState.monedas.value += monedasGanadas
-
-                                    UserRepository.guardarMonedas(
-                                        UserSession.userId,
-                                        GachaState.monedas.value
-                                    )
-
-                                    if (respuestaCorrecta >= 5) {
-
-                                        val siguienteNivel = nivel + 1
-
-                                        UserRepository.obtenerPreguntas(
-                                            siguienteNivel
-                                        ) { lista ->
-
-                                            if (lista.isNullOrEmpty()) {
-
-                                                navController.navigate("Ranking") {
-                                                    popUpTo("Juego") {
-                                                        inclusive = true
-                                                    }
-                                                }
-
-                                            } else {
-
-                                                nivel = siguienteNivel
-                                                preguntas = lista
-                                                numeroPregunta = 0
-                                                respuestaCorrecta = 0
-                                                respuestaElegida = null
-
-                                                estadoRespuesta.clear()
-
-                                                repeat(lista.size) {
-                                                    estadoRespuesta.add(
-                                                        EstadoRespuesta.PENDING
-                                                    )
-                                                }
-
-                                                estadoRespuesta[0] =
-                                                    EstadoRespuesta.CURRENT
-
-                                                tiempoNivel = 0
-                                            }
-                                        }
-
-                                    } else {
-
-                                        navController.navigate("Ranking") {
-                                            popUpTo("Juego") {
-                                                inclusive = true
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-
-                        } else {
-
-                            // MODO CASUAL
-
-                            if (respuestaCorrecta >= 5) {
-
-                                val siguienteNivel = nivel + 1
-
-                                UserRepository.obtenerPreguntas(
-                                    siguienteNivel
-                                ) { lista ->
-
-                                    if (lista.isNullOrEmpty()) {
-
-                                        navController.navigate("inicio") {
-                                            popUpTo("Juego") {
-                                                inclusive = true
-                                            }
-                                        }
-
-                                    } else {
-
-                                        nivel = siguienteNivel
-                                        preguntas = lista
-                                        numeroPregunta = 0
-                                        respuestaCorrecta = 0
-                                        respuestaElegida = null
-
-                                        estadoRespuesta.clear()
-
-                                        repeat(lista.size) {
-                                            estadoRespuesta.add(
-                                                EstadoRespuesta.PENDING
-                                            )
-                                        }
-
-                                        estadoRespuesta[0] =
-                                            EstadoRespuesta.CURRENT
-
-                                        tiempoNivel = 0
-                                    }
-                                }
-
-                            } else {
-
-                                navController.navigate("inicio") {
-                                    popUpTo("Juego") {
-                                        inclusive = true
-                                    }
-                                }
-                            }
-                        }
-
-
-                    },
-
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(58.dp),
-
-                    shape = RoundedCornerShape(18.dp),
-
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor =
-                            Color(0xFFFACC15),
-
-                        contentColor =
-                            Color.Black
-                    )
-                ) {
-
-                    Text(
-                        text = "Finalizar nivel",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                }
-            }
 
             Spacer(modifier = Modifier.height(30.dp))
         }

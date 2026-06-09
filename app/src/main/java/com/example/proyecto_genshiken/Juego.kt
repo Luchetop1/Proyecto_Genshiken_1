@@ -388,7 +388,7 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
                 ) {
 
                     Text(
-                        text = "🎉 JUEGO COMPLETADO 🎉",
+                        text = " JUEGO COMPLETADO ",
 
                         fontSize = 28.sp,
 
@@ -633,6 +633,10 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
                 ) { index ->
 
                     val pregunta = preguntas.getOrNull(index)
+                    val esPreguntaImagenes =
+                        pregunta?.opcionesImagenes?.any {
+                            !it.isNullOrEmpty()
+                        } == true
 
                     if (pregunta == null) {
 
@@ -664,25 +668,30 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
                             Alignment.CenterHorizontally
                     ) {
 
-                        Surface(
-                            shape = RoundedCornerShape(22.dp),
-                            tonalElevation = 6.dp
-                        ) {
+                        if (!pregunta.imagenPregunta.isNullOrEmpty()) {
 
-                            AsyncImage(
-                                model =
-                                    pregunta.imagenPregunta,
+                            Surface(
+                                shape = RoundedCornerShape(22.dp),
+                                tonalElevation = 6.dp
+                            ) {
 
-                                contentDescription = null,
+                                AsyncImage(
+                                    model = pregunta.imagenPregunta,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(240.dp)
+                                )
+                            }
 
-                                contentScale =
-                                    ContentScale.Crop,
-
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(240.dp)
+                            Spacer(
+                                modifier = Modifier.height(26.dp)
                             )
                         }
+
+
+
 
                         Spacer(
                             modifier = Modifier.height(26.dp)
@@ -705,17 +714,16 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
                             modifier = Modifier.height(28.dp)
                         )
 
-                        Opciones(
-                            opciones = pregunta.opciones,
-                            respuestaElegida =
-                                respuestaElegida,
+                    if (esPreguntaImagenes) {
 
+                        OpcionesImagenes(
+                            imagenes = pregunta.opcionesImagenes!!,
+                            respuestaElegida = respuestaElegida,
                             onClick = { indexRespuesta ->
 
                                 if (respuestaElegida == null) {
 
-                                    respuestaElegida =
-                                        indexRespuesta
+                                    respuestaElegida = indexRespuesta
 
                                     if (
                                         indexRespuesta ==
@@ -731,45 +739,70 @@ JUEGO COMPLETADO O SIN MÁS PREGUNTAS
 
                                         respuestaCorrecta++
 
-                                        estadoRespuesta[
-                                            numeroPregunta
-                                        ] =
+                                        estadoRespuesta[numeroPregunta] =
                                             EstadoRespuesta.CORRECT
 
                                     } else {
+
                                         MediaPlayer.create(
                                             context,
                                             R.raw.error
                                         ).start()
 
-                                        val vibrator =
-                                            context.getSystemService(
-                                                Context.VIBRATOR_SERVICE
-                                            ) as Vibrator
-
-                                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                                            vibrator.vibrate(
-                                                VibrationEffect.createOneShot(
-                                                    300, // duración en ms
-                                                    VibrationEffect.DEFAULT_AMPLITUDE
-                                                )
-                                            )
-
-                                        } else {
-
-                                            @Suppress("DEPRECATION")
-                                            vibrator.vibrate(300)
-                                        }
-
                                         puntuacionNivel -= 200
-                                        estadoRespuesta[
-                                            numeroPregunta
-                                        ] =
+
+                                        estadoRespuesta[numeroPregunta] =
                                             EstadoRespuesta.WRONG
                                     }
                                 }
                             }
                         )
+
+                    } else {
+
+                        Opciones(
+                            opciones = pregunta.opciones ?: emptyList(),
+                            respuestaElegida = respuestaElegida,
+                            onClick = { indexRespuesta ->
+
+                                if (respuestaElegida == null) {
+
+                                    respuestaElegida = indexRespuesta
+
+                                    if (
+                                        indexRespuesta ==
+                                        pregunta.opcionCorrecta
+                                    ) {
+
+                                        MediaPlayer.create(
+                                            context,
+                                            R.raw.katanasonido
+                                        ).start()
+
+                                        puntuacionNivel += 1000
+
+                                        respuestaCorrecta++
+
+                                        estadoRespuesta[numeroPregunta] =
+                                            EstadoRespuesta.CORRECT
+
+                                    } else {
+
+                                        MediaPlayer.create(
+                                            context,
+                                            R.raw.error
+                                        ).start()
+
+                                        puntuacionNivel -= 200
+
+                                        estadoRespuesta[numeroPregunta] =
+                                            EstadoRespuesta.WRONG
+                                    }
+                                }
+                            }
+                        )
+                    }
+
                     }
                 }
             }
@@ -971,6 +1004,87 @@ fun Opciones(
                 onClick(3)
             }
         }
+    }
+}
+@Composable
+fun OpcionesImagenes(
+    imagenes: List<String?>,
+    respuestaElegida: Int?,
+    onClick: (Int) -> Unit
+) {
+
+    Column(
+        verticalArrangement =
+            Arrangement.spacedBy(12.dp)
+    ) {
+
+        Row(
+            horizontalArrangement =
+                Arrangement.spacedBy(12.dp)
+        ) {
+
+            ImagenRespuesta(
+                imagenes[0],
+                respuestaElegida == null
+            ) {
+                onClick(0)
+            }
+
+            ImagenRespuesta(
+                imagenes[1],
+                respuestaElegida == null
+            ) {
+                onClick(1)
+            }
+        }
+
+        Row(
+            horizontalArrangement =
+                Arrangement.spacedBy(12.dp)
+        ) {
+
+            ImagenRespuesta(
+                imagenes[2],
+                respuestaElegida == null
+            ) {
+                onClick(2)
+            }
+
+            ImagenRespuesta(
+                imagenes[3],
+                respuestaElegida == null
+            ) {
+                onClick(3)
+            }
+        }
+    }
+}
+@Composable
+fun ImagenRespuesta(
+    url: String?,
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+
+    Card(
+        modifier = Modifier
+            .size(160.dp)
+            .padding(4.dp),
+
+        shape = RoundedCornerShape(16.dp),
+
+        onClick = {
+            if (enabled) onClick()
+        }
+    ) {
+
+        AsyncImage(
+            model = url,
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 

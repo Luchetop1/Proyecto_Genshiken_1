@@ -264,7 +264,7 @@ fun PantallaInicio(navController: NavController) {
                 Spacer(modifier = Modifier.height(28.dp))
 
                 Text(
-                    text = "Trivia Genshiken",
+                    text = "Trivia GenshikenCS.es",
                     fontSize = 30.sp,
                     fontWeight = FontWeight.ExtraBold,
                     color = Color.White,

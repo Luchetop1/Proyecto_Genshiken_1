@@ -151,7 +151,7 @@ fun Juego(navController: NavHostController) {
 
                     if (GameMode.esCompetitivo) {
 
-                        val monedasGanadas = puntuacionTotal / 1000
+                        val monedasGanadas = puntuacionTotal / 5000
 
                         GachaState.monedas.value += monedasGanadas
 

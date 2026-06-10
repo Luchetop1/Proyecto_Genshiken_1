@@ -152,7 +152,7 @@ fun PantallaInicio(navController: NavController) {
             TopAppBar(
                 title = {
                     Text(
-                        text = "GenshikenC.S",
+                        text = "GenshikenCS.es",
                         fontWeight = FontWeight.Bold
                     )
                 },

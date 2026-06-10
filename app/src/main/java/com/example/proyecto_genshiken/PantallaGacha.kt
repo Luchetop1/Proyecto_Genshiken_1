@@ -111,7 +111,7 @@ fun PantallaGacha(navController: NavController) {
             */
 
             Text(
-                text = "✨ GACHAPON GENSHIKEN ✨",
+                text = "✨ GACHAPON GENSHIKENCS.es ✨",
 
                 modifier = Modifier.fillMaxWidth(),
 
